@@ -1,24 +1,50 @@
-# Java/Spring Boot
+# Maven
+
 target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+
+*.log
+
+# Temporary files
+
+*.tmp
+*.temp
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# IDE
+
+.idea/
+*.iml
+.vscode/
+
+# Build
+
 *.class
 *.jar
 *.war
-.mvn/
-.classpath
-.project
-.settings/
-bin/
 
-# JavaScript/Node
-node_modules/
-dist/
+# Environment
+
 .env
 
-# IDE (VS Code, IntelliJ)
-.idea/
-.vscode/
-*.iml
+# Node (nếu frontend dùng JS)
 
-# OS
-.DS_Store
-Thumbs.db
+node_modules/
+dist/
+build/
+
+# Mac
+
+.AppleDouble
+.LSOverride
+
+# Windows
+
+ehthumbs.db
+Desktop.ini
