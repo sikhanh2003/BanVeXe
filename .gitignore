@@ -1,0 +1,36 @@
+# Maven build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Java compiled
+*.class
+
+# Environment
+.env
+
+# Node (nếu có frontend)
+node_modules/
+dist/
+build/
+
+# Mac
+.AppleDouble
+.LSOverride
