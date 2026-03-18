@@ -1,0 +1,328 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BanVeXe - Đặt vé</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      :root {
+        --futa-orange: #ef5222;
+      }
+      body {
+        background-color: #f4f7f6;
+        font-size: 14px;
+      }
+      .card-custom {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .seat {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: #e3f2fd;
+        color: #0060c4;
+        margin: 5px;
+        font-size: 12px;
+      }
+      .seat.booked {
+        background: #e0e0e0;
+        color: #9e9e9e;
+        cursor: not-allowed;
+        border: none;
+      }
+      .seat.selecting {
+        background: #fff3f0;
+        border: 1px solid var(--futa-orange);
+        color: var(--futa-orange);
+        font-weight: bold;
+      }
+      .text-orange {
+        color: var(--futa-orange);
+      }
+      .btn-payment {
+        background-color: var(--futa-orange);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-4">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold m-0">Chọn ghế</h5>
+              <a href="#" class="text-primary text-decoration-none small"
+                >Thông tin xe</a
+              >
+            </div>
+            <div class="row text-center">
+              <div class="col-6 border-end">
+                <p class="text-muted">Tầng dưới</p>
+                <div
+                  class="d-flex flex-wrap justify-content-center"
+                  id="lower-deck"
+                ></div>
+              </div>
+              <div class="col-6">
+                <p class="text-muted">Tầng trên</p>
+                <div
+                  class="d-flex flex-wrap justify-content-center"
+                  id="upper-deck"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold m-0">Thông tin khách hàng</h5>
+              <a href="#" class="text-orange text-decoration-none fw-bold small"
+                >ĐIỀU KHOẢN & LƯU Ý</a
+              >
+            </div>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label fw-bold">Họ và tên *</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  class="form-control"
+                  placeholder="Nhập họ và tên"
+                />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-bold">Số điện thoại *</label>
+                <input
+                  type="text"
+                  id="phone"
+                  class="form-control"
+                  placeholder="Nhập số điện thoại"
+                />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-bold">Email *</label>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-control"
+                  placeholder="Nhập email"
+                />
+              </div>
+              <div class="col-12 mt-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="terms" />
+                  <label class="form-check-label small" for="terms">
+                    Chấp nhận <a href="#" class="text-orange">điều khoản</a> đặt
+                    vé & chính sách bảo mật.
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-custom">
+            <h5 class="fw-bold mb-4">
+              Thông tin đón trả <i class="bi bi-info-circle text-orange"></i>
+            </h5>
+            <div class="row">
+              <div class="col-md-6 border-end">
+                <p class="fw-bold">ĐIỂM ĐÓN</p>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="pick"
+                    checked
+                  />
+                  <label class="form-check-label">Bến xe/VP</label>
+                </div>
+                <select class="form-select mb-3" id="pickPoint"></select>
+              </div>
+              <div class="col-md-6 ps-md-4">
+                <p class="fw-bold">ĐIỂM TRẢ</p>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="drop"
+                    checked
+                  />
+                  <label class="form-check-label">Bến xe/VP</label>
+                </div>
+                <select class="form-select mb-3" id="dropPoint"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold m-0">Thông tin chuyến đi</h6>
+              <a href="#" class="text-orange text-decoration-none small"
+                >Chi tiết</a
+              >
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Tuyến xe</span>
+              <span class="fw-bold" id="route-name">Đang tải...</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Thời gian xuất bến</span>
+              <span class="text-success fw-bold">22:40 17/03/2026</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Số lượng ghế</span>
+              <span id="seat-count">0 Ghế</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Số ghế</span>
+              <span class="text-orange fw-bold" id="seat-list">Trống</span>
+            </div>
+            <hr />
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-bold fs-5">Tổng tiền</span>
+              <span class="text-orange fw-bold fs-5" id="total-price">0đ</span>
+            </div>
+            <div class="mt-4 d-flex justify-content-between">
+              <button
+                class="btn btn-outline-secondary rounded-pill px-4"
+                onclick="history.back()"
+              >
+                Hủy
+              </button>
+              <button class="btn btn-payment" onclick="submitBooking()">
+                Thanh toán
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8080/api";
+      const urlParams = new URLSearchParams(window.location.search);
+      const routeId = urlParams.get("routeId");
+      let selectedSeats = [];
+      const pricePerSeat = 200000;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadRouteInfo();
+        renderSeats();
+        loadUserInfo();
+      });
+
+      // 1. Lấy thông tin từ RouteController
+      async function loadRouteInfo() {
+        if (!routeId) return;
+        try {
+          const res = await fetch(`${API_BASE}/routes/${routeId}`);
+          const data = await res.json();
+          document.getElementById("route-name").innerText =
+            `${data.departureLocation} - ${data.arrivalLocation}`;
+
+          // Đổ dữ liệu vào select điểm đón/trả
+          document.getElementById("pickPoint").innerHTML =
+            `<option>BX ${data.departureLocation}</option>`;
+          document.getElementById("dropPoint").innerHTML =
+            `<option>BX ${data.arrivalLocation}</option>`;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // 2. Vẽ sơ đồ ghế (A01-A17, B01-B17)
+      function renderSeats() {
+        const lower = document.getElementById("lower-deck");
+        const upper = document.getElementById("upper-deck");
+        const booked = ["A01", "A02", "B01"]; // Giả lập dữ liệu đã bán
+
+        for (let i = 1; i <= 17; i++) {
+          const code = i < 10 ? `0${i}` : i;
+          lower.innerHTML += createSeat("A" + code, booked);
+          upper.innerHTML += createSeat("B" + code, booked);
+        }
+      }
+
+      function createSeat(id, booked) {
+        const isBooked = booked.includes(id);
+        return `<div class="seat ${isBooked ? "booked" : ""}" 
+                     id="seat-${id}" 
+                     onclick="${isBooked ? "" : `selectSeat('${id}')`}">${id}</div>`;
+      }
+
+      function selectSeat(id) {
+        const el = document.getElementById(`seat-${id}`);
+        if (selectedSeats.includes(id)) {
+          selectedSeats = selectedSeats.filter((s) => s !== id);
+          el.classList.remove("selecting");
+        } else {
+          if (selectedSeats.length >= 5)
+            return alert("Chỉ được chọn tối đa 5 ghế!");
+          selectedSeats.push(id);
+          el.classList.add("selecting");
+        }
+        updateSummary();
+      }
+
+      function updateSummary() {
+        document.getElementById("seat-count").innerText =
+          selectedSeats.length + " Ghế";
+        document.getElementById("seat-list").innerText =
+          selectedSeats.length > 0 ? selectedSeats.join(", ") : "Trống";
+        document.getElementById("total-price").innerText =
+          (selectedSeats.length * pricePerSeat).toLocaleString() + "đ";
+      }
+
+      function loadUserInfo() {
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+        if (user) {
+          document.getElementById("fullName").value = user.fullName || "";
+          document.getElementById("email").value = user.email || "";
+        }
+      }
+
+      async function submitBooking() {
+        if (selectedSeats.length === 0) return alert("Vui lòng chọn ghế!");
+
+        const bookingData = {
+          routeName: document.getElementById("route-name").innerText, // Lấy tên tuyến
+          customerName: document.getElementById("fullName").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          seats: selectedSeats.join(","),
+          totalAmount: selectedSeats.length * 200000,
+        };
+
+        // Lưu tạm vào sessionStorage để trang payment lấy ra dùng
+        sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+
+        // Chuyển sang trang thanh toán
+        window.location.href = "/payment";
+      }
+    </script>
+  </body>
+</html>

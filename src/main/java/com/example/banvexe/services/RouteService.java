@@ -26,15 +26,11 @@ public class RouteService {
     }
 
     // Trong RouteService.java
-    public Route updateRoute(Long id, Route newDetails) {
-        Route existingRoute = routeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tuyến đường"));
-
-        // BẮT BUỘC: Phải cập nhật từng trường như thế này
-        existingRoute.setDepartureLocation(newDetails.getDepartureLocation());
-        existingRoute.setArrivalLocation(newDetails.getArrivalLocation());
-        existingRoute.setDistanceKm(newDetails.getDistanceKm());
-
+    public Route updateRoute(Long id, Route newRouteData) {
+        Route existingRoute = routeRepository.findById(id).orElseThrow();
+        existingRoute.setDepartureLocation(newRouteData.getDepartureLocation());
+        existingRoute.setArrivalLocation(newRouteData.getArrivalLocation());
+        existingRoute.setDistanceKm(newRouteData.getDistanceKm());
         return routeRepository.save(existingRoute);
     }
 

@@ -54,4 +54,6 @@ public class RouteController {
     public List<Route> getPopularRoutes() {
         return routeRepository.findAll(); // Hoặc lấy top 3 tùy ý
     }
+
+    
 }

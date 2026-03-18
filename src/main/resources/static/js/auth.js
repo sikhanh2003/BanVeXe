@@ -76,6 +76,8 @@ async function handleLogin() {
             if (result.role === "ADMIN") {
                 window.location.href = "/admin/dashboard";
             } else {
+                localStorage.setItem("currentUser", JSON.stringify(result.user));
+                alert("Đăng nhập thành công!");
                 window.location.href = "/";
             }
         } else {

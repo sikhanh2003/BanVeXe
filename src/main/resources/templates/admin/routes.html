@@ -1,8 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Quản lý Tuyến xe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Tuyến xe | Admin</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -17,6 +18,7 @@
       }
       body {
         background: #f4f7f6;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
       #sidebar {
         width: var(--sidebar-w);
@@ -24,6 +26,7 @@
         height: 100vh;
         background: #212529;
         color: white;
+        z-index: 100;
       }
       #main {
         margin-left: var(--sidebar-w);
@@ -32,6 +35,7 @@
       .nav-link {
         color: #adb5bd;
         padding: 12px 20px;
+        transition: 0.3s;
       }
       .nav-link:hover,
       .nav-link.active {
@@ -43,32 +47,32 @@
         border: none;
         border-radius: 12px;
       }
+      .table thead {
+        background: #212529;
+        color: white;
+      }
+      .pagination .page-link {
+        color: #212529;
+      }
+      .pagination .page-item.active .page-link {
+        background-color: #212529;
+        border-color: #212529;
+      }
     </style>
   </head>
   <body>
     <div id="sidebar">
       <div class="p-4 text-center">
         <h4 class="text-warning fw-bold">BANVEXE</h4>
+        <small class="text-muted">Admin Panel</small>
       </div>
       <nav class="nav flex-column px-3">
-        <a class="nav-link" href="/admin/dashboard"
-          ><i class="bi bi-speedometer2 me-2"></i> Thống kê</a
-        >
-        <a class="nav-link active" href="/admin/routes"
-          ><i class="bi bi-geo-alt me-2"></i> Tuyến xe</a
-        >
-        <a class="nav-link" href="/admin/buses"
-          ><i class="bi bi-truck me-2"></i> Xe khách</a
-        >
-        <a class="nav-link" href="/admin/trips"
-          ><i class="bi bi-calendar3 me-2"></i> Chuyến xe</a
-        >
-        <a class="nav-link" href="/admin/tickets"
-          ><i class="bi bi-ticket-perforated me-2"></i> Vé đã đặt</a
-        >
-        <a class="nav-link" href="/admin/users"
-          ><i class="bi bi-people me-2"></i> Người dùng</a
-        >
+        <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i> Thống kê</a>
+        <a class="nav-link active" href="/admin/routes"><i class="bi bi-geo-alt me-2"></i> Tuyến xe</a>
+        <a class="nav-link" href="/admin/buses"><i class="bi bi-truck me-2"></i> Xe khách</a>
+        <a class="nav-link" href="/admin/trips"><i class="bi bi-calendar3 me-2"></i> Chuyến xe</a>
+        <a class="nav-link" href="/admin/tickets"><i class="bi bi-ticket-perforated me-2"></i> Vé đã đặt</a>
+        <a class="nav-link" href="/admin/users"><i class="bi bi-people me-2"></i> Người dùng</a>
       </nav>
     </div>
 
@@ -86,18 +90,26 @@
 
       <div class="card shadow-sm">
         <div class="card-body p-0">
-          <table class="table table-hover mb-0">
-            <thead class="table-dark">
-              <tr>
-                <th class="ps-4">ID</th>
-                <th>Điểm đi</th>
-                <th>Điểm đến</th>
-                <th>Khoảng cách</th>
-                <th class="text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="list-routes"></tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="ps-4">ID</th>
+                  <th>Điểm khởi hành</th>
+                  <th>Điểm đến</th>
+                  <th>Khoảng cách</th>
+                  <th class="text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="list-routes">
+                </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 py-3">
+          <nav>
+            <ul id="pagination-routes" class="pagination justify-content-center mb-0"></ul>
+          </nav>
         </div>
       </div>
     </div>
@@ -107,134 +119,221 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title fw-bold">Tạo tuyến đường mới</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label small fw-bold">Điểm khởi hành</label>
-              <input
-                type="text"
-                id="inp-dep"
-                class="form-control"
-                placeholder="Ví dụ: Hà Nội"
-              />
+              <input type="text" id="inp-dep" class="form-control" placeholder="Ví dụ: TP. Hồ Chí Minh" />
             </div>
             <div class="mb-3">
               <label class="form-label small fw-bold">Điểm đến</label>
-              <input
-                type="text"
-                id="inp-des"
-                class="form-control"
-                placeholder="Ví dụ: Hải Phòng"
-              />
+              <input type="text" id="inp-des" class="form-control" placeholder="Ví dụ: Đà Lạt" />
             </div>
             <div class="mb-3">
               <label class="form-label small fw-bold">Khoảng cách (km)</label>
-              <input
-                type="number"
-                id="inp-dist"
-                class="form-control"
-                placeholder="Ví dụ: 120"
-              />
+              <input type="number" id="inp-dist" class="form-control" placeholder="Ví dụ: 310" />
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
-              Hủy
-            </button>
-            <button class="btn btn-primary px-4" onclick="apiCreateRoute()">
-              Lưu tuyến xe
-            </button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button class="btn btn-primary px-4" onclick="apiCreateRoute()">Lưu tuyến xe</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalEditRoute" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title fw-bold">Cập nhật tuyến đường</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="edit-id" />
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Điểm khởi hành</label>
+              <input type="text" id="edit-dep" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Điểm đến</label>
+              <input type="text" id="edit-des" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Khoảng cách (km)</label>
+              <input type="number" id="edit-dist" class="form-control" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button class="btn btn-success px-4" onclick="apiUpdateRoute()">Lưu thay đổi</button>
           </div>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-      // 1. Tải danh sách tuyến đường
+      let allRoutes = [];
+      let currentPage = 1;
+      const rowsPerPage = 10;
+
+      // 1. Tải danh sách từ API
       async function loadRoutes() {
         try {
           const res = await fetch("/api/routes");
-          const data = await res.json();
-
-          // SỬA LỖI UNDEFINED: Khớp chính xác với Entity Route trong Java
-          const html = data
-            .map(
-              (r) => `
-                <tr>
-                    <td class="ps-4">${r.id}</td>
-                    <td class="fw-bold text-secondary">${r.departureLocation || "N/A"}</td>
-                    <td class="fw-bold text-primary">${r.arrivalLocation || "N/A"}</td>
-                    <td>${r.distanceKm ? r.distanceKm + " km" : "0 km"}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditRouteModal(${r.id}, '${r.departureLocation}', '${r.arrivalLocation}', ${r.distanceKm})">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="apiDeleteRoute(${r.id})">
-                            <i class="bi bi-trash"></i> Xóa
-                        </button>
-                    </td>
-                </tr>
-            `,
-            )
-            .join("");
-
-          document.getElementById("list-routes").innerHTML =
-            html ||
-            '<tr><td colspan="5" class="text-center p-4">Chưa có dữ liệu tuyến đường</td></tr>';
+          allRoutes = await res.json();
+          renderRouteTable(currentPage);
         } catch (e) {
           console.error("Lỗi tải danh sách tuyến:", e);
+          document.getElementById("list-routes").innerHTML = 
+            '<tr><td colspan="5" class="text-center text-danger p-4">Lỗi kết nối máy chủ!</td></tr>';
         }
       }
 
-      // 2. Tạo tuyến mới
+      // 2. Hiển thị bảng kèm phân trang
+      function renderRouteTable(page) {
+        const listBody = document.getElementById("list-routes");
+        if (!listBody) return;
+
+        listBody.innerHTML = "";
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const items = allRoutes.slice(start, end);
+
+        if (items.length === 0) {
+          listBody.innerHTML = '<tr><td colspan="5" class="text-center p-4">Chưa có dữ liệu tuyến đường</td></tr>';
+          document.getElementById("pagination-routes").innerHTML = "";
+          return;
+        }
+
+        items.forEach((r) => {
+          listBody.innerHTML += `
+            <tr>
+              <td class="ps-4 text-muted">#${r.id}</td>
+              <td class="fw-bold text-dark">${r.departureLocation || "N/A"}</td>
+              <td class="fw-bold text-primary">${r.arrivalLocation || "N/A"}</td>
+              <td><span class="badge bg-light text-dark border">${r.distanceKm || 0} km</span></td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary me-1" 
+                        onclick="openEditRouteModal(${r.id}, '${r.departureLocation}', '${r.arrivalLocation}', ${r.distanceKm})">
+                  <i class="bi bi-pencil-square"></i> Sửa
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="apiDeleteRoute(${r.id})">
+                  <i class="bi bi-trash"></i> Xóa
+                </button>
+              </td>
+            </tr>`;
+        });
+
+        renderPaginationButtons();
+      }
+
+      // 3. Vẽ nút phân trang
+      function renderPaginationButtons() {
+        const pagination = document.getElementById("pagination-routes");
+        pagination.innerHTML = "";
+        const pageCount = Math.ceil(allRoutes.length / rowsPerPage);
+
+        if (pageCount <= 1) return;
+
+        for (let i = 1; i <= pageCount; i++) {
+          const li = document.createElement("li");
+          li.className = `page-item ${currentPage === i ? "active" : ""}`;
+          li.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+          li.onclick = () => {
+            currentPage = i;
+            renderRouteTable(i);
+          };
+          pagination.appendChild(li);
+        }
+      }
+
+      // 4. API: Thêm tuyến mới
       async function apiCreateRoute() {
         const data = {
-          departureLocation: document.getElementById("inp-dep").value,
-          arrivalLocation: document.getElementById("inp-des").value,
+          departureLocation: document.getElementById("inp-dep").value.trim(),
+          arrivalLocation: document.getElementById("inp-des").value.trim(),
           distanceKm: parseFloat(document.getElementById("inp-dist").value),
         };
 
         if (!data.departureLocation || !data.arrivalLocation) {
-          alert("Vui lòng nhập đầy đủ điểm đi và điểm đến!");
-          return;
+          return alert("Vui lòng nhập đầy đủ điểm đi và điểm đến!");
         }
 
         try {
-          await fetch("/api/routes", {
+          const res = await fetch("/api/routes", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
 
-          bootstrap.Modal.getInstance(
-            document.getElementById("modalRoute"),
-          ).hide();
-          loadRoutes();
-
-          // Reset form
-          document.getElementById("inp-dep").value = "";
-          document.getElementById("inp-des").value = "";
-          document.getElementById("inp-dist").value = "";
+          if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById("modalRoute")).hide();
+            // Reset fields
+            document.getElementById("inp-dep").value = "";
+            document.getElementById("inp-des").value = "";
+            document.getElementById("inp-dist").value = "";
+            loadRoutes();
+          }
         } catch (e) {
-          alert("Lỗi khi thêm tuyến xe!");
+          alert("Lỗi hệ thống khi thêm tuyến!");
         }
       }
 
-      // 3. Xóa tuyến
+      // 5. API: Xóa tuyến
       async function apiDeleteRoute(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa tuyến này?")) {
-          await fetch(`/api/routes/${id}`, { method: "DELETE" });
-          loadRoutes();
+        if (confirm("Bạn có chắc muốn xóa tuyến này?")) {
+          try {
+            const res = await fetch(`/api/routes/${id}`, { method: "DELETE" });
+            if (res.ok) loadRoutes();
+            else alert("Không thể xóa tuyến đang được sử dụng!");
+          } catch (e) {
+            alert("Lỗi khi kết nối API!");
+          }
         }
       }
 
-      // Tự động load khi trang mở
+      // 6. Modal: Mở form sửa
+      function openEditRouteModal(id, dep, des, dist) {
+        document.getElementById("edit-id").value = id;
+        document.getElementById("edit-dep").value = dep;
+        document.getElementById("edit-des").value = des;
+        document.getElementById("edit-dist").value = dist;
+
+        const editModal = new bootstrap.Modal(document.getElementById("modalEditRoute"));
+        editModal.show();
+      }
+
+      // 7. API: Cập nhật
+      async function apiUpdateRoute() {
+        const id = document.getElementById("edit-id").value;
+        const data = {
+          departureLocation: document.getElementById("edit-dep").value.trim(),
+          arrivalLocation: document.getElementById("edit-des").value.trim(),
+          distanceKm: parseFloat(document.getElementById("edit-dist").value),
+        };
+
+        try {
+          const res = await fetch(`/api/routes/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById("modalEditRoute")).hide();
+            loadRoutes();
+            alert("Cập nhật thành công!");
+          }
+        } catch (e) {
+          alert("Lỗi khi cập nhật!");
+        }
+      }
+
+      // Khởi động
       document.addEventListener("DOMContentLoaded", loadRoutes);
     </script>
   </body>

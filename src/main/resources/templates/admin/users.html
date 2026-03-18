@@ -1,125 +1,221 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Quản lý Người dùng | BANVEXE</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
     <style>
-        :root { --sidebar-w: 240px; }
-        body { background: #f4f7f6; }
-        #sidebar { width: var(--sidebar-w); position: fixed; height: 100vh; background: #212529; color: white; }
-        #main { margin-left: var(--sidebar-w); padding: 30px; }
-        .nav-link { color: #adb5bd; padding: 12px 20px; }
-        .nav-link:hover, .nav-link.active { color: white; background: #343a40; border-radius: 8px; }
-        .card { border: none; border-radius: 12px; }
-        .user-avatar { width: 35px; height: 35px; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+      :root {
+        --sidebar-w: 240px;
+      }
+      body {
+        background: #f4f7f6;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      #sidebar {
+        width: var(--sidebar-w);
+        position: fixed;
+        height: 100vh;
+        background: #212529;
+        color: white;
+      }
+      #main {
+        margin-left: var(--sidebar-w);
+        padding: 30px;
+      }
+      .nav-link {
+        color: #adb5bd;
+        padding: 12px 20px;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        color: white;
+        background: #343a40;
+        border-radius: 8px;
+      }
+      .card {
+        border: none;
+        border-radius: 12px;
+      }
+      .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .table thead {
+        background: #212529;
+        color: white;
+      }
     </style>
-</head>
-<body>
-
-<div id="sidebar">
-    <div class="p-4 text-center"><h4 class="text-warning fw-bold">BANVEXE</h4></div>
-    <nav class="nav flex-column px-3">
+  </head>
+  <body>
+    <div id="sidebar">
+      <div class="p-4 text-center">
+        <h4 class="text-warning fw-bold">BANVEXE</h4>
+        <small class="text-muted">Admin Panel</small>
+      </div>
+      <nav class="nav flex-column px-3">
         <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i> Thống kê</a>
         <a class="nav-link" href="/admin/routes"><i class="bi bi-geo-alt me-2"></i> Tuyến xe</a>
         <a class="nav-link" href="/admin/buses"><i class="bi bi-truck me-2"></i> Xe khách</a>
         <a class="nav-link" href="/admin/trips"><i class="bi bi-calendar3 me-2"></i> Chuyến xe</a>
         <a class="nav-link" href="/admin/tickets"><i class="bi bi-ticket-perforated me-2"></i> Vé đã đặt</a>
         <a class="nav-link active" href="/admin/users"><i class="bi bi-people me-2"></i> Người dùng</a>
-    </nav>
-</div>
+      </nav>
+    </div>
 
-<div id="main">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div id="main">
+      <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold">Quản lý Tài khoản</h3>
-        <button class="btn btn-dark shadow-sm" onclick="loadUsers()">
-            <i class="bi bi-arrow-clockwise me-1"></i> Làm mới danh sách
+        <button class="btn btn-dark shadow-sm" onclick="fetchUsers()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Làm mới danh sách
         </button>
-    </div>
+      </div>
 
-    <div class="card shadow-sm">
+      <div class="card shadow-sm">
         <div class="card-body p-0">
+          <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-4">ID</th>
-                        <th>Người dùng</th>
-                        <th>Email</th>
-                        <th>Số điện thoại</th>
-                        <th>Vai trò</th>
-                        <th class="text-center">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="list-users">
-                    </tbody>
+              <thead>
+                <tr>
+                  <th class="ps-4">ID</th>
+                  <th>Người dùng</th>
+                  <th>Email</th>
+                  <th>Số điện thoại</th>
+                  <th>Vai trò</th>
+                  <th class="text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="list-users">
+                </tbody>
             </table>
+          </div>
         </div>
+        <div class="card-footer bg-white border-0 py-3">
+          <nav>
+            <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+          </nav>
+        </div>
+      </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    async function loadUsers() {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let allUsers = [];
+      let currentPage = 1;
+      const rowsPerPage = 7; // Hiển thị 7 người dùng mỗi trang
+
+      // 1. Lấy dữ liệu từ API
+      async function fetchUsers() {
         try {
-            const res = await fetch('/api/users');
-            if(!res.ok) throw new Error("Không thể tải dữ liệu");
-            const data = await res.json();
-            
-            const html = data.map(u => {
-                // Kiểm tra các biến có thể có từ Entity của bạn
-                const name = u.fullName || u.username || u.hoTen || 'Chưa đặt tên';
-                const role = u.role || 'USER';
-                const roleBadge = role === 'ADMIN' ? 'bg-danger' : 'bg-info text-dark';
-                
-                return `
-                    <tr>
-                        <td class="ps-4 text-muted">#${u.id}</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar me-2">
-                                    <i class="bi bi-person-fill text-secondary"></i>
-                                </div>
-                                <div class="fw-bold">${name}</div>
-                            </div>
-                        </td>
-                        <td>${u.email || '---'}</td>
-                        <td>${u.phone || u.phoneNumber || '---'}</td>
-                        <td><span class="badge ${roleBadge}">${role}</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})">
-                                <i class="bi bi-person-x"></i> Xóa
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            document.getElementById('list-users').innerHTML = html || '<tr><td colspan="6" class="text-center p-4">Không có người dùng nào</td></tr>';
+          const res = await fetch("/api/users");
+          if (!res.ok) throw new Error("Lỗi tải dữ liệu");
+          allUsers = await res.json();
+          
+          renderUserTable(currentPage);
         } catch (e) {
-            console.error(e);
-            document.getElementById('list-users').innerHTML = '<tr><td colspan="6" class="text-center text-danger p-4">Lỗi kết nối API Người dùng</td></tr>';
+          console.error(e);
+          document.getElementById("list-users").innerHTML =
+            '<tr><td colspan="6" class="text-center text-danger p-4">Lỗi kết nối API Người dùng</td></tr>';
         }
-    }
+      }
 
-    async function deleteUser(id) {
-        if (confirm("Bạn có chắc muốn xóa tài khoản này? Thao tác này không thể hoàn tác.")) {
-            try {
-                const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    loadUsers();
-                } else {
-                    alert("Không thể xóa người dùng này (có thể do ràng buộc dữ liệu vé).");
-                }
-            } catch (e) {
-                alert("Lỗi hệ thống!");
+      // 2. Hiển thị bảng theo trang
+      function renderUserTable(page) {
+        const listBody = document.getElementById("list-users");
+        if (!listBody) return;
+
+        listBody.innerHTML = "";
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedUsers = allUsers.slice(start, end);
+
+        if (paginatedUsers.length === 0) {
+          listBody.innerHTML = '<tr><td colspan="6" class="text-center p-4">Không có người dùng nào</td></tr>';
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        paginatedUsers.forEach((u) => {
+          const name = u.fullName || u.username || "Ẩn danh";
+          const role = u.role || "USER";
+          const roleBadge = role === "ADMIN" ? "bg-danger" : "bg-info text-dark";
+
+          listBody.innerHTML += `
+            <tr>
+              <td class="ps-4 text-muted">#${u.id}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="user-avatar me-2">
+                    <i class="bi bi-person-circle text-secondary"></i>
+                  </div>
+                  <div class="fw-bold">${name}</div>
+                </div>
+              </td>
+              <td>${u.email || "---"}</td>
+              <td>${u.phone || u.phoneNumber || "---"}</td>
+              <td><span class="badge ${roleBadge}">${role}</span></td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})">
+                  <i class="bi bi-person-x"></i> Xóa
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        renderPaginationControls();
+      }
+
+      // 3. Vẽ nút phân trang
+      function renderPaginationControls() {
+        const pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
+        const pageCount = Math.ceil(allUsers.length / rowsPerPage);
+
+        if (pageCount <= 1) return;
+
+        for (let i = 1; i <= pageCount; i++) {
+          const li = document.createElement("li");
+          li.className = `page-item ${currentPage === i ? "active" : ""}`;
+          li.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+          li.onclick = () => {
+            currentPage = i;
+            renderUserTable(i);
+          };
+          pagination.appendChild(li);
+        }
+      }
+
+      // 4. Xóa người dùng
+      async function deleteUser(id) {
+        if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
+          try {
+            const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+            if (res.ok) {
+              fetchUsers(); // Tải lại danh sách
+            } else {
+              alert("Không thể xóa người dùng này (Có thể tài khoản này đã đặt vé).");
             }
+          } catch (e) {
+            alert("Lỗi hệ thống khi xóa!");
+          }
         }
-    }
+      }
 
-    // Tự động load
-    document.addEventListener('DOMContentLoaded', loadUsers);
-</script>
-
-</body>
+      // Khởi chạy khi trang load
+      document.addEventListener("DOMContentLoaded", fetchUsers);
+    </script>
+  </body>
 </html>
