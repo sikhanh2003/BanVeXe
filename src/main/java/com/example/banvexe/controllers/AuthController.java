@@ -5,6 +5,8 @@ import com.example.banvexe.services.AuthService; // Đảm bảo bạn đã đ�
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+import com.example.banvexe.models.entities.User;
 
 import java.util.Map; // Quan trọng: Phải có cái này để dùng Map
 
@@ -14,6 +16,17 @@ public class AuthController {
 
     @Autowired
     private AuthService authService; // Thống nhất dùng tên authService
+
+    @GetMapping("/login")
+    public String login() {
+        return "login"; // Trả về file login.html
+    }
+
+    @GetMapping("/register")
+    public String registerForm(Model model) {
+        model.addAttribute("user", new User());
+        return "register";
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO dto) {
