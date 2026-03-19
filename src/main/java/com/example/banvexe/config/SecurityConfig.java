@@ -14,41 +14,48 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Tắt CSRF để làm việc với API dễ hơn (tạm thời)
-            .csrf(csrf -> csrf.disable())
-            
-            // 2. Cấu hình phân quyền
-            .authorizeHttpRequests(auth -> auth
-                // Cho phép các file tĩnh (CSS, JS, Images) và trang login/register
-                .requestMatchers("/login/**", "/register/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                // Mở khóa trang Admin để bạn làm việc
-                .requestMatchers("/admin/**", "/api/admin/**").permitAll() 
-                .requestMatchers("/api/**").permitAll()
-                // Các trang còn lại bắt buộc đăng nhập
-                .anyRequest().authenticated()
-            )
-            
-            // 3. Cấu hình trang Login tự chế (Form Login)
-            .formLogin(form -> form
-                .loginPage("/login") 
-                .defaultSuccessUrl("/admin/dashboard", true) // Login xong phi thẳng vào Dashboard
-                .permitAll()
-            )
-            
-            // 4. Cấu hình OAuth2 (Google) - Dùng chung trang login của mình
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login") // Ép Spring dùng trang login.html của Kỳ
-                .defaultSuccessUrl("/admin/dashboard", true) // Login Google xong cũng vào Dashboard
-            )
-            
-            // 5. Cấu hình Logout
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            );
-            
+                // 1. Bảo mật cơ bản
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF nếu đang phát triển API/Test
+
+                // 2. Cấu hình phân quyền (Authorize Requests)
+                .authorizeHttpRequests(auth -> auth
+                        // Công khai: Static files, trang chủ, đăng nhập, đăng ký
+                        .requestMatchers("/", "/login/**", "/register/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // API auth thì cho phép mọi người truy cập (để đăng nhập/đăng ký)
+                        .requestMatchers("/api/routes/**").permitAll()
+                        .requestMatchers("/api/buses/**").permitAll()
+                        .requestMatchers("/api/trips/**").permitAll()
+
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ ADMIN mới được truy cập API admin
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // Phân quyền: Chỉ ADMIN mới được vào các link quản trị
+                        // (Thay .permitAll() cũ bằng .hasRole("ADMIN"))
+                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+
+                        // Mọi request khác (bao gồm đặt vé của User) phải đăng nhập
+                        .anyRequest().authenticated())
+
+                // 3. Cấu hình Form Login (Dành cho tài khoản hệ thống)
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .successHandler(customSuccessHandler()) // Phân luồng sau khi login thành công
+                        .permitAll())
+
+                // 4. Cấu hình OAuth2 Login (Google)
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(customSuccessHandler()) // Dùng chung phân luồng với Form Login
+                )
+
+                // 5. Cấu hình Logout
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll());
+
         return http.build();
     }
 
