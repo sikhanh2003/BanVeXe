@@ -45,46 +45,25 @@ async function handleLogin() {
     const passNode = document.getElementById('login-password');
     const msgElement = document.getElementById("message");
 
-    if (!userNode.value || !passNode.value) {
-        msgElement.innerText = "Vui lòng điền đầy đủ thông tin!";
-        return;
-    }
-
-    const data = {
-        username: userNode.value,
-        password: passNode.value
-    };
+    // Tạo form data chuẩn
+    const params = new URLSearchParams();
+    params.append('username', userNode.value);
+    params.append('password', passNode.value);
 
     try {
-        const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch('/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
         });
 
-        if (!response.ok) {
-            msgElement.innerText = "Tài khoản hoặc mật khẩu không chính xác!";
-            return;
-        }
-
-        const result = await response.json();
-
-        if (result.message && result.message.toLowerCase().includes("thành công")) {
-            localStorage.setItem("role", result.role);
-            localStorage.setItem("username", result.username);
-
-            if (result.role === "ADMIN") {
-                window.location.href = "/admin/dashboard";
-            } else {
-                localStorage.setItem("currentUser", JSON.stringify(result.user));
-                alert("Đăng nhập thành công!");
-                window.location.href = "/";
-            }
+        // Nếu đăng nhập đúng, Spring sẽ Redirect (từ SuccessHandler)
+        if (response.redirected) {
+            window.location.href = response.url;
         } else {
-            msgElement.innerText = result.message;
+            msgElement.innerText = "Sai tài khoản hoặc mật khẩu!";
         }
     } catch (error) {
-        console.error("Lỗi đăng nhập:", error);
-        msgElement.innerText = "Có lỗi xảy ra khi đăng nhập!";
+        msgElement.innerText = "Lỗi kết nối máy chủ!";
     }
 }

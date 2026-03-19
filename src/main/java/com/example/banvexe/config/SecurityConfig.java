@@ -19,21 +19,15 @@ public class SecurityConfig {
 
                 // 2. Cấu hình phân quyền (Authorize Requests)
                 .authorizeHttpRequests(auth -> auth
-                        // Công khai: Static files, trang chủ, đăng nhập, đăng ký
-                        .requestMatchers("/", "/login/**", "/register/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // API auth thì cho phép mọi người truy cập (để đăng nhập/đăng ký)
-                        .requestMatchers("/api/routes/**").permitAll()
-                        .requestMatchers("/api/buses/**").permitAll()
-                        .requestMatchers("/api/trips/**").permitAll()
+                        // Mở cổng cho API login/register và các file giao diện
+                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/api/auth/**").permitAll()
 
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ ADMIN mới được truy cập API admin
+                        // API Admin phải có quyền ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // Trang Admin (HTML) phải có quyền ADMIN
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // Phân quyền: Chỉ ADMIN mới được vào các link quản trị
-                        // (Thay .permitAll() cũ bằng .hasRole("ADMIN"))
-                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
-
-                        // Mọi request khác (bao gồm đặt vé của User) phải đăng nhập
                         .anyRequest().authenticated())
 
                 // 3. Cấu hình Form Login (Dành cho tài khoản hệ thống)
@@ -69,18 +63,14 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             var authorities = authentication.getAuthorities();
 
-            // Kiểm tra quyền của người dùng
             for (var authority : authorities) {
                 String role = authority.getAuthority();
-
-                // Lưu ý: Spring Security thường thêm tiền tố "ROLE_" tự động
-                if (role.equals("ROLE_ADMIN") || role.equals("ADMIN")) {
+                // Spring Security mặc định thêm ROLE_ vào trước tên Role
+                if (role.equals("ROLE_ADMIN")) {
                     response.sendRedirect("/admin/dashboard");
                     return;
                 }
             }
-
-            // Nếu không phải Admin thì mặc định về trang chủ cho Customer
             response.sendRedirect("/");
         };
     }
