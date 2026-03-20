@@ -1,25 +1,103 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Vé của tôi</title>
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vé của tôi - BANVEXE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root { --futa-orange: #ef5222; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .ticket-card {
+            background: white;
+            border-left: 8px solid var(--futa-orange);
+            border-radius: 12px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .ticket-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .ticket-status { position: absolute; top: 15px; right: 15px; }
+        .dotted-line { border-top: 2px dotted #eee; margin: 15px 0; }
+        .bus-icon { color: var(--futa-orange); font-size: 1.5rem; }
+    </style>
+</head>
+<body>
 
-  <body>
-    <h2 style="text-align: center">Vé của tôi</h2>
+    <nav class="navbar navbar-expand-lg sticky-top mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-danger" href="/">BANVEXE</a>
+            <div class="ms-auto d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle fw-bold d-flex align-items-center" data-bs-toggle="dropdown">
+                        <img th:src="${userAvatar != null ? userAvatar : 'https://ui-avatars.com/api/?name=' + userName}" class="rounded-circle me-2" style="width:30px; height:30px;">
+                        Chào, <span th:text="${userName}">Người dùng</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="/"><i class="bi bi-house me-2"></i>Trang chủ</a></li>
+                        <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Thông tin cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <div class="cards">
-      <div class="card">
-        <p>TPHCM → Đà Lạt</p>
-        <p>Ngày: 20/03/2026</p>
-        <p>Ghế: A5</p>
-      </div>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold"><i class="bi bi-ticket-perforated me-2 text-danger"></i>Lịch sử đặt vé</h3>
+            <span class="badge bg-dark rounded-pill" th:text="${tickets != null ? tickets.size() : 0} + ' Vé'">0 Vé</span>
+        </div>
 
-      <div class="card">
-        <p>TPHCM → Nha Trang</p>
-        <p>Ngày: 25/03/2026</p>
-        <p>Ghế: B3</p>
-      </div>
+        <div th:if="${tickets == null or tickets.isEmpty()}" class="text-center py-5 shadow-sm bg-white rounded-3">
+            <i class="bi bi-emoji-smile text-muted" style="font-size: 3rem;"></i>
+            <p class="mt-3 text-muted">Bạn chưa có chuyến hành trình nào với chúng tôi.</p>
+            <a href="/" class="btn btn-danger rounded-pill px-4">Đặt vé ngay</a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6" th:each="ticket : ${tickets}">
+                <div class="card ticket-card p-4 shadow-sm border-0">
+                    <div class="ticket-status">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Thành công</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-bus-front bus-icon me-3"></i>
+                        <div>
+                            <h5 class="fw-bold mb-0" th:text="${ticket.departure + ' ➔ ' + ticket.destination}">TPHCM ➔ Đà Lạt</h5>
+                            <small class="text-muted" th:text="'Mã vé: #' + ${ticket.id}">Mã vé: #12345</small>
+                        </div>
+                    </div>
+
+                    <div class="dotted-line"></div>
+
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block">NGÀY ĐI</small>
+                            <span class="fw-bold" th:text="${ticket.startTime}">20/03/2026</span>
+                        </div>
+                        <div class="col-4 border-start border-end">
+                            <small class="text-muted d-block">SỐ GHẾ</small>
+                            <span class="fw-bold text-danger" th:text="${ticket.seatNumber != null ? ticket.seatNumber : 'A5'}">A5</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">GIÁ VÉ</small>
+                            <span class="fw-bold text-success" th:text="${ticket.price != null ? #numbers.formatDecimal(ticket.price, 0, 'COMMA', 0, 'POINT') + 'đ' : '200.000đ'}">200.000đ</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill">Xem chi tiết</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </body>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
