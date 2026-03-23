@@ -1,94 +1,178 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>Đăng nhập</title>
-    <script src="/js/auth.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - BANVEXE</title>
     <style>
-      body {
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-family:
-          Segoe UI,
-          sans-serif;
-        background: linear-gradient(135deg, #4facfe, #00f2fe);
-      }
-      .card {
-        width: 340px;
-        background: white;
-        padding: 35px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-      h2 {
-        text-align: center;
-        margin-bottom: 25px;
-      }
-      input {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        box-sizing: border-box;
-      }
-      input:focus {
-        outline: none;
-        border-color: #4facfe;
-      }
-      button {
-        width: 100%;
-        padding: 11px;
-        border: none;
-        border-radius: 6px;
-        background: #4facfe;
-        color: white;
-        font-size: 15px;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #3794f5;
-      }
-      #message {
-        color: #d9534f;
-        margin-top: 10px;
-        text-align: center;
-        font-size: 14px;
-        min-height: 20px;
-      }
-      .link {
-        text-align: center;
-        margin-top: 15px;
-        font-size: 14px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h2>Đăng nhập</h2>
-      <input id="login-username" type="text" placeholder="Tên đăng nhập" />
-      <input id="login-password" type="password" placeholder="Mật khẩu" />
-      <button type="button" onclick="handleLogin()">Đăng nhập</button>
-      <p id="message"></p>
-      <div class="link">
-        Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
-      </div>
-      <div class="divider">Hoặc</div>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .card {
+            width: 360px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 700;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 8px rgba(79, 172, 254, 0.2);
+        }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+        .forgot-link a {
+            color: #666;
+            text-decoration: none;
+        }
+        .forgot-link a:hover {
+            color: #4facfe;
+            text-decoration: underline;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #4facfe;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button[type="submit"]:hover {
+            background: #3794f5;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .link a {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 13px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
 
-      <button
-        type="button"
-        class="btn-google"
-        onclick="window.location.href = '/oauth2/authorization/google'"
-      >
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-          alt="Google Logo"
-        />
-        Đăng nhập với Google
-      </button>
+        .btn-google {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: #555;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-google:hover {
+            background: #f8f9fa;
+        }
+        .btn-google img {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Đăng nhập</h2>
+        
+        <div th:if="${param.error}" class="alert">
+            Tên đăng nhập hoặc mật khẩu không đúng!
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Tên đăng nhập" required />
+            </div>
+            
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Mật khẩu" required />
+                <div class="forgot-link">
+                    <a th:href="@{/forgot-password}">Quên mật khẩu?</a>
+                </div>
+            </div>
+
+            <button type="submit">Đăng nhập</button>
+        </form>
+
+        <div class="link">
+            Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a>
+        </div>
+
+        <div class="divider">Hoặc</div>
+
+        <button
+            type="button"
+            class="btn-google"
+            onclick="window.location.href = '/oauth2/authorization/google'"
+        >
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                alt="Google Logo"
+            />
+            Đăng nhập với Google
+        </button>
     </div>
-  </body>
+</body>
 </html>

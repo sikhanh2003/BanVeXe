@@ -25,10 +25,14 @@ public class Ticket {
     private Integer seatNumber;
     private LocalDateTime bookingTime;
 
+    // 1. Thêm field này để lưu thời gian hết hạn giữ chỗ
+    private LocalDateTime holdExpiresAt; 
+
     @Enumerated(EnumType.STRING)
     private TicketStatus status;
 
+    // 2. Cập nhật Enum để có đủ các trạng thái logic trong Service
     public enum TicketStatus {
-        BOOKED, PAID, CANCELLED
+        AVAILABLE, HOLD, BOOKED, PAID, CANCELLED
     }
 }
