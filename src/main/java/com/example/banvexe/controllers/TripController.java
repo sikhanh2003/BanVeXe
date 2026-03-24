@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -32,4 +35,15 @@ public class TripController {
         tripService.deleteTrip(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/search")
+        public ResponseEntity<List<Trip>> search(@RequestParam String from, 
+                                                @RequestParam String to, 
+                                                @RequestParam String date) {
+            List<Trip> results = tripService.searchTrips(from, to, date);
+            return ResponseEntity.ok(results);
+        }
+
+        
+
 }
