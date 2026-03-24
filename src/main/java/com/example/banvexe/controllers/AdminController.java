@@ -1,6 +1,7 @@
 package com.example.banvexe.controllers;
 
 import com.example.banvexe.models.dto.AdminDashboardDTO;
+import com.example.banvexe.models.entities.Ticket;
 import com.example.banvexe.services.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,21 +9,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.List;
+import com.example.banvexe.repositories.TicketRepository;
 
 /**
- * Controller quản lý khu vực Admin
- * Đã tích hợp Service để lấy dữ liệu thực tế từ Database
+ *  * Controller quản lý khu vực Admin
+ *  * Đã tích hợp Service để lấy dữ liệu thực tế từ Database
+ *  
  */
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-
     @Autowired
     private AdminService adminService;
-
-    // ==========================================
-    // 1. CÁC ROUTE TRẢ VỀ GIAO DIỆN (HTML)
-    // ==========================================
+    @Autowired
+    private TicketRepository ticketRepository;
 
     @GetMapping("/dashboard")
     public String dashboardPage() {
@@ -51,18 +52,16 @@ public class AdminController {
     }
 
     @GetMapping("/tickets")
-    public String ticketsPage() {
+    public String ticketPage() {
         return "admin/tickets";
     }
 
-    // ==========================================
-    // 2. CÁC API TRẢ VỀ DỮ LIỆU (JSON)
-    // ==========================================
+    // @GetMapping("/tickets")
+    // public ResponseEntity<List<Ticket>> getAllTickets() {
+    //     List<Ticket> tickets = ticketRepository.findAllWithDetails();
+    //     return ResponseEntity.ok(tickets);
+    // }
 
-    /**
-     * API lấy toàn bộ số liệu thống kê cho Dashboard
-     * Trả về JSON để JavaScript (fetch) xử lý hiển thị
-     */
     @GetMapping("/api/admin/stats")
     @ResponseBody // Bắt buộc phải có để trả về JSON, tránh lỗi Unexpected token '<'
     public ResponseEntity<AdminDashboardDTO> getDashboardStats() {

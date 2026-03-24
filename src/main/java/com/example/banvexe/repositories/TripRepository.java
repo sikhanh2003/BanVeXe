@@ -16,11 +16,10 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findByRouteId(Long routeId);
 
     List<Trip> findByRouteDepartureLocationAndRouteArrivalLocationAndDepartureTimeBetween(
-        String departure, 
-        String arrival, 
-        LocalDateTime start, 
-        LocalDateTime end
-    );
+            String departure,
+            String arrival,
+            LocalDateTime start,
+            LocalDateTime end);
 
     // Tìm chuyến xe theo ngày (Dùng cho trang chủ)
     @Query("SELECT t FROM Trip t WHERE CAST(t.departureTime AS LocalDate) = :date")
@@ -30,4 +29,10 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     @Query("SELECT SUM(b.capacity) FROM Trip t JOIN t.bus b")
     Integer getTotalSystemCapacity();
 
+    @Query("SELECT r.id as id, r.departureLocation as departureLocation, " +
+            "r.arrivalLocation as arrivalLocation, r.distanceKm as distanceKm, " +
+            "MIN(t.pricePerTicket) as minPrice " +
+            "FROM Route r LEFT JOIN Trip t ON r.id = t.route.id " +
+            "GROUP BY r.id")
+    List<Object[]> findRoutesWithMinPrice();
 }

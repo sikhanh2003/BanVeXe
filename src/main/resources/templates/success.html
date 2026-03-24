@@ -1,1 +1,89 @@
-<h2>Thanh toán thành công ✅</h2>
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đặt vé thành công</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .card {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+      }
+      .icon {
+        font-size: 60px;
+        color: #28a745;
+        margin-bottom: 20px;
+      }
+      h2 {
+        color: #333;
+        margin: 0 0 10px;
+      }
+      p {
+        color: #666;
+        line-height: 1.6;
+      }
+      .btn-home {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 12px 25px;
+        background-color: #ff5722;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+      .btn-home:hover {
+        background-color: #e64a19;
+      }
+      #countdown {
+        font-weight: bold;
+        color: #ff5722;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">✔</div>
+      <h2>ĐẶT VÉ THÀNH CÔNG!</h2>
+      <p>
+        Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi. Hệ thống đã ghi nhận đơn
+        hàng của bạn.
+      </p>
+      <p>
+        Bạn sẽ tự động quay lại trang chủ sau
+        <span id="countdown">5</span> giây...
+      </p>
+
+      <a href="/" class="btn-home">Về trang chủ ngay</a>
+    </div>
+
+    <script>
+      // Logic đếm ngược và chuyển hướng
+      let seconds = 5;
+      const countdownEl = document.getElementById("countdown");
+
+      const timer = setInterval(() => {
+        seconds--;
+        countdownEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          window.location.href = "/"; // Đường dẫn trang chủ của bạn
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>

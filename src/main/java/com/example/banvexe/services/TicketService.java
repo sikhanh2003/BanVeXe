@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TicketService {
@@ -66,4 +67,18 @@ public class TicketService {
             ticketRepository.save(t);
         });
     }
+    public boolean deleteTicket(Long id) {
+        // Kiểm tra xem vé có tồn tại không trước khi xóa
+        Optional<Ticket> ticket = ticketRepository.findById(id);
+        if (ticket.isPresent()) {
+            ticketRepository.deleteById(id);
+            return true; // Xóa thành công
+        }
+        return false; // Không tìm thấy vé để xóa
+    }
+
+    public Ticket getTicketById(Long id) {
+        return ticketRepository.findById(id).orElse(null);
+    }
+
 }

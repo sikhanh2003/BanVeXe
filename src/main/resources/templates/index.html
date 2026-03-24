@@ -52,6 +52,10 @@
         width: 90%;
         max-width: 1000px;
         margin-top: -50px;
+        position: relative;
+        z-index: 10;
+        margin-left: auto;
+        margin-right: auto;
       }
       .route-card {
         background: white;
@@ -60,6 +64,7 @@
         overflow: hidden;
         transition: 0.3s;
         cursor: pointer;
+        height: 100%;
       }
       .route-card:hover {
         transform: translateY(-5px);
@@ -68,14 +73,21 @@
       .city-tag {
         background: #0060c4;
         color: white;
-        padding: 5px 15px;
+        padding: 8px 15px;
         font-weight: bold;
+        font-size: 1.1rem;
       }
       .user-avatar {
         width: 30px;
         height: 30px;
         border-radius: 50%;
         object-fit: cover;
+      }
+      .route-item {
+        transition: background 0.2s;
+      }
+      .route-item:hover {
+        background-color: #f8f9fa;
       }
     </style>
   </head>
@@ -94,7 +106,7 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
               <li>
-<a class="dropdown-item" href="/profile">Thông tin cá nhân</a>
+                <a class="dropdown-item" href="/profile">Thông tin cá nhân</a>
               </li>
               <li>
                 <a class="dropdown-item" href="/history">Lịch sử đặt vé</a>
@@ -107,7 +119,6 @@
               </li>
             </ul>
           </div>
-
           <div th:unless="${userName}">
             <a href="/login" class="btn btn-login btn-sm px-4 me-2"
               >Đăng nhập</a
@@ -124,31 +135,42 @@
       <h1 class="text-white fw-bold">Mua vé xe khách trực tuyến</h1>
     </div>
 
-    <div class="container d-flex justify-content-center">
-      <div class="search-box">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="small text-muted fw-bold">ĐIỂM ĐI</label>
-            <input
-              type="text"
-              class="form-control border-0 bg-light"
-              placeholder="Ví dụ: TP. Hồ Chí Minh"
-            />
-          </div>
-          <div class="col-md-4">
-            <label class="small text-muted fw-bold">ĐIỂM ĐẾN</label>
-            <input
-              type="text"
-              class="form-control border-0 bg-light"
-              placeholder="Ví dụ: Đà Lạt"
-            />
-          </div>
-          <div class="col-md-4">
-            <label>&nbsp;</label>
-            <button class="btn btn-warning w-100 text-white fw-bold py-2">
-              TÌM CHUYẾN XE
-            </button>
-          </div>
+    <div class="search-box">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">ĐIỂM ĐI</label>
+          <input
+            type="text"
+            id="departure"
+            class="form-control border-0 bg-light"
+            placeholder="TP. Hồ Chí Minh"
+          />
+        </div>
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">ĐIỂM ĐẾN</label>
+          <input
+            type="text"
+            id="arrival"
+            class="form-control border-0 bg-light"
+            placeholder="Đà Lạt"
+          />
+        </div>
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">NGÀY ĐI</label>
+          <input
+            type="date"
+            id="travelDate"
+            class="form-control border-0 bg-light"
+          />
+        </div>
+        <div class="col-md-3">
+          <label>&nbsp;</label>
+          <button
+            onclick="handleSearch()"
+            class="btn btn-warning w-100 text-white fw-bold py-2"
+          >
+            TÌM CHUYẾN XE
+          </button>
         </div>
       </div>
     </div>
@@ -166,7 +188,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         fetchPopularRoutes();
 
-        // Thông báo thành công từ URL
+        // Giữ nguyên các thông báo login/logout
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("loginSuccess") === "true") {
           Swal.fire({
@@ -178,60 +200,87 @@
           });
           window.history.replaceState({}, document.title, "/");
         }
-
-        if (urlParams.get("logout") === "true") {
-          Swal.fire({
-            title: "Đã đăng xuất!",
-            icon: "info",
-            timer: 2000,showConfirmButton: false,
-          });
-          window.history.replaceState({}, document.title, "/");
-        }
       });
 
+      function handleSearch() {
+        const from = document.getElementById("departure").value;
+        const to = document.getElementById("arrival").value;
+        const date = document.getElementById("travelDate").value;
+
+        if (!from || !to || !date) {
+          Swal.fire(
+            "Lỗi",
+            "Vui lòng nhập đầy đủ thông tin tìm kiếm!",
+            "warning",
+          );
+          return;
+        }
+        window.location.href = `/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`;
+      }
+
+      // Thay thế hàm fetchPopularRoutes cũ bằng bản này để an toàn hơn
       async function fetchPopularRoutes() {
+        const list = document.getElementById("route-list");
         try {
           const response = await fetch(`${API_BASE}/routes`);
+          if (!response.ok) throw new Error("Cổng kết nối bị lỗi");
+
           const routes = await response.json();
-          const list = document.getElementById("route-list");
+
+          // Gom nhóm theo điểm đi (Departure)
           const groups = routes.reduce((acc, r) => {
-            if (!acc[r.departureLocation]) acc[r.departureLocation] = [];
-            acc[r.departureLocation].push(r);
+            const city = r.departureLocation
+              ? r.departureLocation.trim()
+              : "Khác";
+            if (!acc[city]) acc[city] = [];
+            acc[city].push(r);
             return acc;
           }, {});
 
           list.innerHTML = Object.keys(groups)
             .map(
               (city) => `
-                    <div class="col-md-4">
-                        <div class="route-card">
-                            <div class="city-tag">${city}</div>
-                            <div class="p-2">
-                                ${groups[city]
-                                  .map(
-                                    (r) => `
-                                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom" 
-                                         onclick="location.href='/booking?routeId=${r.id}'">
-                                        <div>
-                                            <div class="fw-bold text-primary">${r.arrivalLocation}</div>
-                                            <div class="small text-muted">${r.distanceKm}km</div>
-                                        </div>
-                                        <div class="text-danger fw-bold">${r.price?.toLocaleString() || '200.000'}đ</div>
-                                    </div>
-                                `,
-                                  )
-                                  .join("")}
-                            </div>
-                        </div>
-                    </div>
-                `,
+      <div class="col-md-4">
+        <div class="route-card shadow-sm">
+          <div class="city-tag"><i class="bi bi-bus-front me-2"></i>Tuyến xe từ ${city}</div>
+          <div class="p-2">
+            ${groups[city]
+              .map(
+                (r) => `
+              <div class="route-item d-flex justify-content-between align-items-center p-3 border-bottom" 
+                   onclick="location.href='/booking?routeId=${r.id}'">
+                <div>
+                  <div class="fw-bold text-primary">${r.arrivalLocation ? r.arrivalLocation.trim() : "Chưa xác định"}</div>
+                  <div class="small text-muted"><i class="bi bi-geo-alt"></i> ${r.distanceKm || 0}km</div>
+                </div>
+                <div class="text-end">
+                  <div class="text-danger fw-bold">
+    ${
+      r.minPrice && r.minPrice > 0
+        ? new Intl.NumberFormat("vi-VN").format(r.minPrice) + "đ"
+        : "Đang cập nhật"
+    }
+</div>
+                  <div class="small text-muted" style="font-size: 0.7rem;">Giá chỉ từ</div>
+                </div>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+    `,
             )
             .join("");
         } catch (err) {
-  console.error("Lỗi API:", err);
-  document.getElementById("route-list").innerHTML = 
-    "<p class='text-danger'>Không tải được dữ liệu tuyến xe!</p>";
-}
+          console.error("Lỗi API:", err);
+          list.innerHTML = `
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-exclamation-triangle text-warning display-4"></i>
+        <p class="text-muted mt-2">Hiện tại không có tuyến xe nào khả dụng. Vui lòng thử lại sau!</p>
+      </div>`;
+        }
       }
     </script>
   </body>

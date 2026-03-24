@@ -16,56 +16,41 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, HandlerMappingIntrospector introspector)
+            throws Exception {
         MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
 
         http
-            .csrf(csrf -> csrf.disable()) // Tắt để test POST dễ dàng
-            .authorizeHttpRequests(auth -> auth
-                // 1. Tài nguyên tĩnh
-                .requestMatchers(mvc.pattern("/css/**"), mvc.pattern("/js/**"), mvc.pattern("/images/**"), 
-                                mvc.pattern("/static/**"), mvc.pattern("/webjars/**"), mvc.pattern("/favicon.ico")).permitAll()
-                
-                // 2. Các trang công khai & Auth (Thêm Quên mật khẩu vào đây)
-                .requestMatchers(
-                    mvc.pattern("/"), 
-                    mvc.pattern("/login"), 
-                    mvc.pattern("/register"), 
-                    mvc.pattern("/forgot-password/**"), // Cho phép trang quên mật khẩu
-                    mvc.pattern("/reset-password/**"),  // Cho phép trang đặt lại mật khẩu
-                    mvc.pattern("/error"), 
-                    mvc.pattern("/api/auth/**")
-                ).permitAll()
-                
-                // 3. Các trang xem thông tin chuyến xe
-                .requestMatchers(mvc.pattern("/api/routes/**"), mvc.pattern("/booking")).permitAll()
-                
-                // 4. Phân quyền Admin
-                .requestMatchers(mvc.pattern("/admin/**"), mvc.pattern("/api/admin/**")).hasRole("ADMIN")
-                
-                // 5. Các trang cần login
-                .requestMatchers(mvc.pattern("/payment/**"), mvc.pattern("/myticket/**")).authenticated()
-                
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler(customSuccessHandler()) 
-                .failureUrl("/login?error=true")
-                .permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .successHandler(customSuccessHandler())
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .clearAuthentication(true)
-                .permitAll()
-            );
+                .csrf(csrf -> csrf.disable()) // Tắt để test POST dễ dàng
+                .authorizeHttpRequests(auth -> auth
+                        // CHUYỂN CÁI NÀY LÊN ĐẦU TIÊN
+                        .requestMatchers("/js/**", "/css/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
+
+                        // Sau đó mới đến các API và phân quyền khác
+                        .requestMatchers(
+                                mvc.pattern("/"),
+                                mvc.pattern("/login"),
+                                mvc.pattern("/api/buses/**"), // Đã thêm để JS gọi API thành công
+                                mvc.pattern("/api/routes/**"))
+                        .permitAll()
+
+                        .requestMatchers(mvc.pattern("/admin/**")).hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .successHandler(customSuccessHandler())
+                        .failureUrl("/login?error=true")
+                        .permitAll())
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(customSuccessHandler()))
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .clearAuthentication(true)
+                        .permitAll());
 
         return http.build();
     }
@@ -90,4 +75,6 @@ public class SecurityConfig {
             response.sendRedirect("/");
         };
     }
+
+    
 }
