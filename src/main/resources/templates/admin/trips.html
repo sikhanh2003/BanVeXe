@@ -1,327 +1,329 @@
-<!doctype html>
-<html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Quản lý Chuyến xe - BANVEXE</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch trình chuyến xe - BANVEXE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-      :root {
-        --sidebar-w: 240px;
-      }
-      body {
-        background: #f4f7f6;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      }
-      #sidebar {
-        width: var(--sidebar-w);
-        position: fixed;
-        height: 100vh;
-        background: #212529;
-        color: white;
-        z-index: 100;
-      }
-      #main {
-        margin-left: var(--sidebar-w);
-        padding: 30px;
-      }
-      .nav-link {
-        color: #adb5bd;
-        padding: 12px 20px;
-        transition: 0.3s;
-      }
-      .nav-link:hover,
-      .nav-link.active {
-        color: white;
-        background: #343a40;
-        border-radius: 8px;
-      }
-      .card {
-        border: none;
-        border-radius: 12px;
-      }
-      .table thead {
-        background-color: #212529;
-        color: white;
-      }
+        :root {
+            --sidebar-bg: #212529;
+            --sidebar-w: 240px;
+            --primary-color: #0d6efd;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-w);
+            position: fixed;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            color: #adb5bd;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 2rem 1.5rem;
+            color: #ffc107;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-link {
+            color: #adb5bd;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .nav-link i { font-size: 1.2rem; width: 30px; }
+
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-link.active {
+            color: #fff;
+            background: #343a40;
+            border-radius: 0 25px 25px 0;
+            margin-right: 15px;
+        }
+
+        /* Main Content */
+        #main {
+            margin-left: var(--sidebar-w);
+            padding: 40px;
+        }
+
+        .page-title {
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 0;
+        }
+
+        /* Table Styling */
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 4px; /* Vuông vức theo ảnh */
+            overflow: hidden;
+        }
+
+        .table { margin-bottom: 0; }
+        .table thead th {
+            background: #fff;
+            color: #333;
+            font-weight: 600;
+            text-transform: none;
+            border-bottom: 2px solid #dee2e6;
+            padding: 15px;
+            font-size: 0.85rem;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .btn-create {
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+        /* Status Badge */
+        .badge-seats {
+            background-color: #198754;
+            color: white;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-weight: 500;
+        }
+        
+        .badge-empty {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 20px;
+            padding: 6px 12px;
+        }
+
+        .btn-delete {
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            background: transparent;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
+
     <div id="sidebar">
-      <div class="p-4 text-center">
-        <h4 class="text-warning fw-bold">BANVEXE</h4>
-      </div>
-      <nav class="nav flex-column px-3">
-        <a class="nav-link" href="/admin/dashboard"
-          ><i class="bi bi-speedometer2 me-2"></i> Thống kê</a
-        >
-        <a class="nav-link" href="/admin/routes"
-          ><i class="bi bi-geo-alt me-2"></i> Tuyến xe</a
-        >
-        <a class="nav-link" href="/admin/buses"
-          ><i class="bi bi-truck me-2"></i> Xe khách</a
-        >
-        <a class="nav-link active" href="/admin/trips"
-          ><i class="bi bi-calendar3 me-2"></i> Chuyến xe</a
-        >
-        <a class="nav-link" href="/admin/tickets"
-          ><i class="bi bi-ticket-perforated me-2"></i> Vé đã đặt</a
-        >
-        <a class="nav-link" href="/admin/users"
-          ><i class="bi bi-people me-2"></i> Người dùng</a
-        >
-      </nav>
+        <a href="#" class="sidebar-brand">BANVEXE</a>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-graph-up"></i> Thống kê</a>
+            <a class="nav-link" href="/admin/routes"><i class="bi bi-geo-alt"></i> Tuyến xe</a>
+            <a class="nav-link" href="/admin/buses"><i class="bi bi-truck"></i> Xe khách</a>
+            <a class="nav-link active" href="/admin/trips"><i class="bi bi-calendar3"></i> Chuyến xe</a>
+            <a class="nav-link" href="/admin/tickets"><i class="bi bi-ticket-perforated"></i> Vé đã đặt</a>
+            <a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Người dùng</a>
+        </nav>
     </div>
 
     <div id="main">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Lịch trình chuyến xe</h3>
-        <button class="btn btn-primary shadow-sm" onclick="openTripModal()">
-          <i class="bi bi-plus-lg me-1"></i> Tạo Chuyến Mới
-        </button>
-      </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="page-title">Lịch trình chuyến xe</h2>
+            <button class="btn btn-primary btn-create shadow-sm" onclick="openTripModal()">
+                <i class="bi bi-plus-lg me-1"></i> Tạo chuyến mới
+            </button>
+        </div>
 
-      <div class="card shadow-sm">
-        <div class="card-body p-0">
-          <table class="table table-hover mb-0">
-            <thead>
-              <tr>
-                <th class="ps-4">Mã</th>
-                <th>Tuyến đường</th>
-                <th>Thông tin Xe</th>
-                <th>Khởi hành</th>
-                <th>Giá vé</th>
-                <th>Ghế trống</th>
-                <th class="text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="list-trips"></tbody>
-          </table>
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px" class="ps-4">Mã</th>
+                            <th>Tuyến đường</th>
+                            <th>Thông tin Xe</th>
+                            <th>Khởi hành</th>
+                            <th>Giá vé</th>
+                            <th>Ghế trống</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-trips">
+                        </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white border-0 py-3">
+                <nav>
+                    <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+                </nav>
+            </div>
         </div>
-        <div class="card-footer bg-white border-0 py-3">
-          <nav>
-            <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
-          </nav>
-        </div>
-      </div>
     </div>
 
     <div class="modal fade" id="modalTrip" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Thiết lập Chuyến xe mới</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Tuyến Đường:</label>
-              <select id="sel-route" class="form-select"></select>
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Thiết lập Chuyến xe mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Tuyến Đường:</label>
+                        <select id="sel-route" class="form-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Chọn Xe Khách:</label>
+                        <select id="sel-bus" class="form-select" onchange="updateAvailableSeats()"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Thời gian khởi hành:</label>
+                        <input type="datetime-local" id="inp-departureTime" class="form-control">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold small">Giá vé (VNĐ):</label>
+                            <input type="number" id="inp-price" class="form-control" placeholder="Ví dụ: 200000">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Ghế trống:</label>
+                            <input type="number" id="inp-availableSeats" class="form-control bg-light" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary px-4" onclick="apiCreateTrip()">Lưu chuyến xe</button>
+                </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Chọn Xe Khách:</label>
-              <select
-                id="sel-bus"
-                class="form-select"
-                onchange="updateAvailableSeats()"
-              ></select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold"
-                >Thời gian khởi hành:</label
-              >
-              <input
-                type="datetime-local"
-                id="inp-departureTime"
-                class="form-control"
-              />
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Giá vé (VNĐ):</label>
-              <input
-                type="number"
-                id="inp-price"
-                class="form-control"
-                placeholder="Ví dụ: 200000"
-              />
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold"
-                >Số ghế trống ban đầu:</label
-              >
-              <input
-                type="number"
-                id="inp-availableSeats"
-                class="form-control"
-                readonly
-                style="background-color: #e9ecef"
-              />
-              <small class="text-muted italic"
-                >* Tự động lấy theo sức chứa của xe.</small
-              >
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
-              Hủy
-            </button>
-            <button class="btn btn-primary px-4" onclick="apiCreateTrip()">
-              Lưu chuyến xe
-            </button>
-          </div>
         </div>
-      </div>
     </div>
-    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      let globalBuses = [];
+        let globalBuses = [];
+        let currentPage = 0;
 
-      // 1. Tải danh sách chuyến xe
-      async function loadTrips() {
-        try {
-          const res = await fetch("/api/trips");
-          const data = await res.json();
+        async function loadTrips(page = 0) {
+            try {
+                currentPage = page;
+                const res = await fetch(`/api/trips?page=${page}&size=10`);
+                const data = await res.json();
+                
+                const trips = data.content || data;
+                const totalPages = data.totalPages || 1;
 
-          const html = data
-            .map(
-              (t) => `
-                    <tr>
-                        <td class="ps-4 fw-bold">#${t.id}</td>
-                        <td class="text-primary fw-bold">
-                            ${t.route ? t.route.departureLocation + " ➔ " + t.route.arrivalLocation : "N/A"}
-                        </td>
-                        <td>
-                            <div class="fw-bold">${t.bus ? t.bus.busNumber : "N/A"}</div>
-                            <small class="text-muted">${t.bus ? t.bus.busType : ""}</small>
-                        </td>
-                        <td>${new Date(t.departureTime).toLocaleString("vi-VN")}</td>
-                        <td class="fw-bold text-success">
-                            ${t.pricePerTicket ? t.pricePerTicket.toLocaleString("vi-VN") + "đ" : "0đ"}
-                        </td>
-                        <td>
-                            <span class="badge ${t.availableSeats > 0 ? "bg-success" : "bg-danger"}">
-                                ${t.availableSeats || 0} ghế
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTrip(${t.id})">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `,
-            )
-            .join("");
+                const html = trips.map(t => {
+                    const route = t.route ? `${t.route.departureLocation} <span class="text-primary mx-1">➔</span> ${t.route.arrivalLocation}` : "N/A";
+                    const busNum = t.bus ? t.bus.busNumber : "N/A";
+                    const price = t.pricePerTicket ? t.pricePerTicket.toLocaleString("vi-VN") + "đ" : "0đ";
+                    const time = t.departureTime ? new Date(t.departureTime).toLocaleString("vi-VN").replace(",", "") : "---";
+                    const seats = t.availableSeats || 0;
 
-          document.getElementById("list-trips").innerHTML =
-            html ||
-            '<tr><td colspan="7" class="text-center p-4">Chưa có chuyến xe nào</td></tr>';
-        } catch (e) {
-          console.error("Lỗi tải chuyến xe:", e);
-        }
-      }
+                    return `
+                        <tr>
+                            <td class="ps-4 fw-bold">#${t.id}</td>
+                            <td class="text-primary fw-bold">${route}</td>
+                            <td class="fw-bold text-dark">${busNum}</td>
+                            <td class="text-muted">${time}</td>
+                            <td class="fw-bold text-success">${price}</td>
+                            <td>
+                                <span class="${seats > 0 ? 'badge-seats' : 'badge-empty'}">
+                                    ${seats} ghế
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn-delete" onclick="deleteTrip(${t.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join("");
 
-      // 2. Mở Modal và load dữ liệu Tuyến + Xe
-      async function openTripModal() {
-        try {
-          const [resR, resB] = await Promise.all([
-            fetch("/api/routes"),
-            fetch("/api/buses"),
-          ]);
-          const routes = await resR.json();
-          globalBuses = await resB.json();
-
-          // Đổ dữ liệu Tuyến
-          document.getElementById("sel-route").innerHTML = routes
-            .map(
-              (r) =>
-                `<option value="${r.id}">${r.departureLocation} ➔ ${r.arrivalLocation}</option>`,
-            )
-            .join("");
-
-          // Đổ dữ liệu Xe
-          document.getElementById("sel-bus").innerHTML = globalBuses
-            .map(
-              (b) =>
-                `<option value="${b.id}">${b.busNumber} (${b.capacity} chỗ)</option>`,
-            )
-            .join("");
-
-          // Cập nhật ghế trống mặc định
-          updateAvailableSeats();
-
-          new bootstrap.Modal(document.getElementById("modalTrip")).show();
-        } catch (e) {
-          alert("Không thể tải dữ liệu tuyến đường hoặc xe khách!");
-        }
-      }
-
-      // 3. Tự động cập nhật số ghế khi chọn xe
-      function updateAvailableSeats() {
-        const busId = document.getElementById("sel-bus").value;
-        const bus = globalBuses.find((b) => b.id == busId);
-        if (bus) {
-          document.getElementById("inp-availableSeats").value = bus.capacity;
-        }
-      }
-
-      // 4. API Tạo Chuyến xe
-      async function apiCreateTrip() {
-        const data = {
-          route: { id: document.getElementById("sel-route").value },
-          bus: { id: document.getElementById("sel-bus").value },
-          departureTime: document.getElementById("inp-departureTime").value,
-          pricePerTicket:
-            parseFloat(document.getElementById("inp-price").value) || 0,
-          availableSeats:
-            parseInt(document.getElementById("inp-availableSeats").value) || 0,
-        };
-
-        if (!data.departureTime || data.pricePerTicket <= 0) {
-          return alert("Vui lòng điền đầy đủ thời gian và giá vé!");
+                document.getElementById("list-trips").innerHTML = html || '<tr><td colspan="7" class="text-center p-4">Chưa có chuyến xe nào</td></tr>';
+                renderPagination(totalPages, currentPage);
+            } catch (e) { console.error(e); }
         }
 
-        try {
-          const res = await fetch("/api/trips", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
-
-          if (res.ok) {
-            bootstrap.Modal.getInstance(
-              document.getElementById("modalTrip"),
-            ).hide();
-            loadTrips();
-          } else {
-            alert("Lỗi khi lưu chuyến xe! Hãy kiểm tra lại Backend.");
-          }
-        } catch (e) {
-          alert("Lỗi kết nối server!");
+        function renderPagination(totalPages, current) {
+            let html = '';
+            for (let i = 0; i < totalPages; i++) {
+                html += `<li class="page-item ${current === i ? 'active' : ''}">
+                            <a class="page-link" href="javascript:void(0)" onclick="loadTrips(${i})">${i + 1}</a>
+                         </li>`;
+            }
+            document.getElementById("pagination").innerHTML = html;
         }
-      }
 
-      // 5. Xóa chuyến
-      async function deleteTrip(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa chuyến xe này?")) {
-          await fetch(`/api/trips/${id}`, { method: "DELETE" });
-          loadTrips();
+        async function openTripModal() {
+            try {
+                const [resR, resB] = await Promise.all([fetch("/api/routes"), fetch("/api/buses")]);
+                const routes = await resR.json();
+                globalBuses = await resB.json();
+
+                document.getElementById("sel-route").innerHTML = routes.map(r => `<option value="${r.id}">${r.departureLocation} ➔ ${r.arrivalLocation}</option>`).join("");
+                document.getElementById("sel-bus").innerHTML = globalBuses.map(b => `<option value="${b.id}">${b.busNumber} (${b.capacity} chỗ)</option>`).join("");
+                
+                updateAvailableSeats();
+                new bootstrap.Modal(document.getElementById("modalTrip")).show();
+            } catch (e) { alert("Lỗi tải dữ liệu!"); }
         }
-      }
 
-      document.addEventListener("DOMContentLoaded", loadTrips);
+        function updateAvailableSeats() {
+            const busId = document.getElementById("sel-bus").value;
+            const bus = globalBuses.find(b => b.id == busId);
+            if (bus) document.getElementById("inp-availableSeats").value = bus.capacity;
+        }
+
+        async function apiCreateTrip() {
+            const data = {
+                route: { id: document.getElementById("sel-route").value },
+                bus: { id: document.getElementById("sel-bus").value },
+                departureTime: document.getElementById("inp-departureTime").value,
+                pricePerTicket: parseFloat(document.getElementById("inp-price").value) || 0,
+                availableSeats: parseInt(document.getElementById("inp-availableSeats").value) || 0,
+            };
+            const res = await fetch("/api/trips", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById("modalTrip")).hide();
+                loadTrips(0);
+            }
+        }
+
+        async function deleteTrip(id) {
+            if (confirm("Xóa chuyến xe này?")) {
+                await fetch(`/api/trips/${id}`, { method: "DELETE" });
+                loadTrips(currentPage);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => loadTrips(0));
     </script>
-  </body>
+</body>
 </html>

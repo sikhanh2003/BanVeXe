@@ -1,80 +1,86 @@
-let allBuses = [];
-let currentPage = 1;
-const rowsPerPage = 10; // Số hàng mỗi trang
+let currentPage = 0; // Spring Boot bắt đầu từ trang 0
 
-// 1. Tải danh sách xe từ API
-async function loadBuses() {
+// 1. Tải danh sách xe từ API (Server-side Pagination)
+async function loadBuses(page = 0) {
     try {
-        const res = await fetch("/api/buses");
-        allBuses = await res.json();
-        renderTable(currentPage); // Gọi hàm hiển thị có phân trang
+        currentPage = page;
+        const res = await fetch(`/api/buses?page=${page}&size=10`);
+        const data = await res.json();
+        
+        // Spring Data JPA trả về đối tượng có thuộc tính 'content' và 'totalPages'
+        const buses = data.content || []; 
+        const totalPages = data.totalPages || 0;
+
+        renderTable(buses);
+        renderPagination(totalPages, currentPage);
     } catch (e) {
         console.error("Lỗi tải dữ liệu:", e);
         document.getElementById("list-buses").innerHTML = '<tr><td colspan="5" class="text-center text-danger p-4">Không thể kết nối máy chủ</td></tr>';
     }
 }
 
-// 2. Hàm hiển thị bảng kèm Phân trang
-function renderTable(page) {
+// 2. Hàm hiển thị bảng
+function renderTable(items) {
     const listBody = document.getElementById('list-buses');
-    const pagination = document.getElementById('pagination');
-    if (!listBody || !pagination) return;
-
-    listBody.innerHTML = "";
-    
-    // Tính toán dữ liệu cho trang hiện tại
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const items = allBuses.slice(start, end);
+    if (!listBody) return;
 
     if (items.length === 0) {
         listBody.innerHTML = '<tr><td colspan="5" class="text-center p-4">Chưa có dữ liệu xe</td></tr>';
-    } else {
-        items.forEach(b => {
-            listBody.innerHTML += `
-                <tr>
-                    <td class="ps-4 text-secondary">#${b.id}</td>
-                    <td><span class="badge bg-light text-dark border">${b.busNumber || "N/A"}</span></td>
-                    <td>${b.busType || "Chưa rõ"}</td>
-                    <td>${b.capacity || 0} ghế</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary me-1" 
-                                onclick="openEditModal(${b.id}, '${b.busNumber}', '${b.busType}', ${b.capacity})">
-                            <i class="bi bi-pencil"></i> Sửa
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBus(${b.id})">
-                            <i class="bi bi-trash"></i> Xóa
-                        </button>
-                    </td>
-                </tr>`;
-        });
+        return;
     }
 
-    // Vẽ các nút số trang
-    renderPagination();
+    listBody.innerHTML = items.map(b => `
+        <tr>
+            <td class="ps-4 text-secondary">#${b.id}</td>
+            <td><span class="badge bg-light text-dark border">${b.busNumber || "N/A"}</span></td>
+            <td>${b.busType || "Chưa rõ"}</td>
+            <td><span class="badge bg-info-subtle text-info-emphasis px-3">${b.capacity || 0} ghế</span></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary me-1" 
+                        onclick="openEditModal(${b.id}, '${b.busNumber}', '${b.busType}', ${b.capacity})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteBus(${b.id})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>`).join("");
 }
 
-// 3. Hàm vẽ nút phân trang
-function renderPagination() {
+// 3. Hàm vẽ nút phân trang (Đồng bộ logic với trang Trips)
+function renderPagination(totalPages, current) {
     const pagination = document.getElementById('pagination');
-    pagination.innerHTML = "";
-    const pageCount = Math.ceil(allBuses.length / rowsPerPage);
-
-    if (pageCount <= 1) return; // Không hiện phân trang nếu chỉ có 1 trang
-
-    for (let i = 1; i <= pageCount; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item ${currentPage === i ? 'active' : ''}`;
-        li.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
-        li.onclick = (e) => {
-            currentPage = i;
-            renderTable(i);
-        };
-        pagination.appendChild(li);
+    if (!pagination || totalPages <= 1) {
+        pagination.innerHTML = "";
+        return;
     }
+
+    let html = "";
+    // Nút Trước
+    html += `
+        <li class="page-item ${current === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="loadBuses(${current - 1})">Trước</a>
+        </li>`;
+
+    // Các nút số
+    for (let i = 0; i < totalPages; i++) {
+        html += `
+            <li class="page-item ${current === i ? 'active' : ''}">
+                <a class="page-link" href="javascript:void(0)" onclick="loadBuses(${i})">${i + 1}</a>
+            </li>`;
+    }
+
+    // Nút Sau
+    html += `
+        <li class="page-item ${current + 1 >= totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="loadBuses(${current + 1})">Sau</a>
+        </li>`;
+
+    pagination.innerHTML = html;
 }
 
-// 4. Modal: Chuẩn bị Thêm mới
+// --- Các hàm Modal (Giữ nguyên logic của bạn nhưng tối ưu đóng modal) ---
+
 function prepareAdd() {
     document.getElementById('modalTitle').innerText = "Thêm phương tiện mới";
     document.getElementById('edit-id').value = "";
@@ -83,7 +89,6 @@ function prepareAdd() {
     document.getElementById('inp-capacity').value = "40";
 }
 
-// 5. Modal: Mở để Sửa
 function openEditModal(id, number, type, cap) {
     document.getElementById('modalTitle').innerText = "Cập nhật thông tin xe";
     document.getElementById('edit-id').value = id;
@@ -91,11 +96,9 @@ function openEditModal(id, number, type, cap) {
     document.getElementById('inp-type').value = type;
     document.getElementById('inp-capacity').value = cap;
     
-    const myModal = new bootstrap.Modal(document.getElementById('modalBus'));
-    myModal.show();
+    new bootstrap.Modal(document.getElementById('modalBus')).show();
 }
 
-// 6. Lưu thông tin (Thêm/Sửa)
 async function saveBus() {
     const id = document.getElementById('edit-id').value;
     const data = {
@@ -109,38 +112,24 @@ async function saveBus() {
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/buses/${id}` : '/api/buses';
 
-    try {
-        const res = await fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
+    const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
 
-        if (res.ok) {
-            // Đóng modal bằng cách tìm instance hiện tại
-            const modalElement = document.getElementById('modalBus');
-            const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-            modalInstance.hide();
-            loadBuses();
-        } else {
-            alert("Lỗi khi lưu thông tin!");
-        }
-    } catch (e) {
-        alert("Lỗi kết nối API!");
+    if (res.ok) {
+        const modalEl = document.getElementById('modalBus');
+        bootstrap.Modal.getInstance(modalEl).hide();
+        loadBuses(currentPage); // Tải lại trang hiện tại
     }
 }
 
-// 7. Xóa xe
 async function deleteBus(id) {
-    if (confirm("Bạn có chắc chắn muốn xóa xe này?")) {
-        try {
-            const res = await fetch(`/api/buses/${id}`, { method: "DELETE" });
-            if (res.ok) loadBuses();
-        } catch (e) {
-            alert("Lỗi khi xóa!");
-        }
+    if (confirm("Xác nhận xóa xe này?")) {
+        const res = await fetch(`/api/buses/${id}`, { method: "DELETE" });
+        if (res.ok) loadBuses(currentPage);
     }
 }
 
-// Khởi chạy
-document.addEventListener("DOMContentLoaded", loadBuses);
+document.addEventListener("DOMContentLoaded", () => loadBuses(0));
