@@ -41,6 +41,9 @@ public class PaymentController {
     @ResponseBody
     public ResponseEntity<?> createOrder(@Valid @RequestBody Map<String, Object> request,
             Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Bạn cần đăng nhập để đặt vé"));
+        }
         try {
             String paymentMethod = (String) request.get("paymentMethod");
             Long amount = Long.valueOf(request.get("amount").toString());
