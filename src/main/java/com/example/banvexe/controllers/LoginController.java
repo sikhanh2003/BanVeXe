@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class LoginController {
-    // ĐÃ XÓA login() và register() vì đã có ở AuthController
 
     @GetMapping("/booking")
     public String booking() {

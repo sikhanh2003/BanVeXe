@@ -1,11 +1,10 @@
-const { defineConfig } = require("cypress");
+const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
-  allowCypressEnv: false,
+  projectId: "5g3fgo", // 👈 dán cái bạn lấy từ Cypress Cloud
 
   e2e: {
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
-    },
-  },
-});
+    baseUrl: "http://localhost:8080",
+    video: true
+  }
+})

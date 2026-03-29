@@ -19,4 +19,27 @@ public class JwtUtils {
                 .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String getEmailFromJwtToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+    // 3. Hàm kiểm tra Token có hợp lệ không (Check giả mạo, hết hạn)
+    public boolean validateJwtToken(String authToken) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+                    .build()
+                    .parseClaimsJws(authToken);
+            return true;
+        } catch (Exception e) {
+            // Có thể log lỗi ra: e.getMessage() để biết là hết hạn hay sai chữ ký
+            return false;
+        }
+    }
 }

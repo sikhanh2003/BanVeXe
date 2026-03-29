@@ -4,6 +4,9 @@ import com.example.banvexe.models.entities.Trip;
 import com.example.banvexe.models.entities.Ticket; // Import thêm Ticket entity
 import com.example.banvexe.services.TripService;
 import com.example.banvexe.services.TicketService; // Import thêm TicketService
+import com.example.banvexe.models.dto.AdminDashboardDTO;
+import com.example.banvexe.models.entities.Ticket;
+import com.example.banvexe.services.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -12,15 +15,26 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.List;
+import com.example.banvexe.repositories.TicketRepository;
+
+/**
+ *  * Controller quản lý khu vực Admin
+ *  * Đã tích hợp Service để lấy dữ liệu thực tế từ Database
+ *  
+ */
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-
     @Autowired
     private TripService tripService;
 
     @Autowired
     private TicketService ticketService; // Inject TicketService vào đây
+    private AdminService adminService;
+    @Autowired
+    private TicketRepository ticketRepository;
 
     // 1. Trang Thống kê
     @GetMapping({"", "/", "/dashboard"})
@@ -76,5 +90,25 @@ public class AdminController {
     @GetMapping("/users")
     public String usersPage() {
         return "admin/users";
+    public String ticketPage() {
+        return "admin/tickets";
+    }
+
+    // @GetMapping("/tickets")
+    // public ResponseEntity<List<Ticket>> getAllTickets() {
+    //     List<Ticket> tickets = ticketRepository.findAllWithDetails();
+    //     return ResponseEntity.ok(tickets);
+    // }
+
+    @GetMapping("/api/admin/stats")
+    @ResponseBody // Bắt buộc phải có để trả về JSON, tránh lỗi Unexpected token '<'
+    public ResponseEntity<AdminDashboardDTO> getDashboardStats() {
+        try {
+            AdminDashboardDTO stats = adminService.getDashboardStats();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            // Log lỗi nếu cần thiết
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

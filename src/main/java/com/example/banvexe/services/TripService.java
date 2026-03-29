@@ -8,7 +8,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import com.example.banvexe.repositories.RouteRepository;
 
 @Service
 public class TripService {
@@ -17,6 +22,13 @@ public class TripService {
     private TripRepository tripRepository;
 
     // Lấy tất cả chuyến xe (không phân trang - nếu cần dùng cho các logic khác)
+    @Autowired
+    private RouteRepository routeRepository;
+
+    public TripService(RouteRepository routeRepository) {
+        this.routeRepository = routeRepository;
+    }
+
     public List<Trip> getAllTrips() {
         return tripRepository.findAll();
     }
@@ -34,6 +46,16 @@ public class TripService {
             trip.setAvailableSeats(trip.getBus().getCapacity());
         }
         return tripRepository.save(trip);
+    }
+
+    public List<Trip> searchTrips(String from, String to, String date) {
+
+        LocalDate localDate = LocalDate.parse(date);
+
+        LocalDateTime start = localDate.atStartOfDay();
+        LocalDateTime end = localDate.plusDays(1).atStartOfDay();
+
+        return routeRepository.searchTrips(from, to, start, end);
     }
 
     public void deleteTrip(Long id) {

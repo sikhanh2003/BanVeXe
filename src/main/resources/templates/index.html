@@ -1,119 +1,411 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BANVEXE - Hệ thống đặt vé xe trực tuyến</title>
-    
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet" />
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css}" rel="stylesheet" />
-    
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BanVeXe - Đặt vé xe giá rẻ</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
     <style>
-        :root { --futa-orange: #ef5222; }
-        .navbar-brand { font-size: 1.5rem; }
-        
-        /* Hero Section Styling */
-        .hero-section {
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
-                        url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop') no-repeat center center/cover;
-            height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        /* Search Box Styling */
-        .search-box {
-            max-width: 900px;
-            margin-top: -60px; /* Đẩy khung tìm kiếm lên trên banner */
-            z-index: 10;
-            position: relative;
-        }
-        
-        .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-        .btn-warning { background-color: #ffc107; border: none; }
+      :root {
+        --futa-orange: #ef5222;
+      }
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .navbar {
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .btn-login {
+        border: 1px solid var(--futa-orange);
+        color: var(--futa-orange);
+        border-radius: 20px;
+      }
+      .btn-login:hover {
+        background: var(--futa-orange);
+        color: white;
+      }
+      .hero-section {
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+          url("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200");
+        height: 400px;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .search-box {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 1000px;
+        margin-top: -50px;
+        position: relative;
+        z-index: 10;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .route-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #eee;
+        overflow: hidden;
+        transition: 0.3s;
+        cursor: pointer;
+        height: 100%;
+      }
+      .route-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+      .city-tag {
+        background: #0060c4;
+        color: white;
+        padding: 8px 15px;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      .user-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .route-item {
+        transition: background 0.2s;
+      }
+      .route-item:hover {
+        background-color: #f8f9fa;
+      }
     </style>
-</head>
-<body class="bg-light">
-
-    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg sticky-top">
       <div class="container">
-        <a class="navbar-brand fw-bold text-danger" th:href="@{/}">BANVEXE</a>
-        
+        <a class="navbar-brand fw-bold text-danger" href="/">BANVEXE</a>
         <div class="ms-auto d-flex align-items-center" id="user-nav">
-          
-          <div th:if="${userName != null}" class="dropdown">
-            <button class="btn btn-light dropdown-toggle fw-bold d-flex align-items-center" data-bs-toggle="dropdown" type="button">
-              <img th:src="${userAvatar != null ? userAvatar : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="user-avatar me-2" />
+          <div th:if="${userName}" class="dropdown">
+            <button
+              class="btn btn-light dropdown-toggle fw-bold d-flex align-items-center"
+              data-bs-toggle="dropdown"
+            >
+              <img th:src="${userAvatar}" class="user-avatar me-2" />
               Chào, <span th:text="${userName}">Kỳ</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-              <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person me-2"></i>Thông tin cá nhân</a></li>
-              <li><a class="dropdown-item" th:href="@{/history}"><i class="bi bi-ticket-perforated me-2"></i>Lịch sử đặt vé</a></li>
+              <li>
+                <a class="dropdown-item" href="/profile">Thông tin cá nhân</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/history">Lịch sử đặt vé</a>
+              </li>
               <li><hr class="dropdown-divider" /></li>
               <li>
-                <form th:action="@{/logout}" method="post" style="margin:0;">
-                  <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
-                </form>
+                <a class="dropdown-item text-danger" href="/logout"
+                  >Đăng xuất</a
+                >
               </li>
             </ul>
           </div>
-
-          <div th:unless="${userName != null}">
-            <a th:href="@{/login}" class="btn btn-outline-dark btn-sm px-4 me-2 border-0">Đăng nhập</a>
-            <a th:href="@{/register}" class="btn btn-danger btn-sm px-4 rounded-pill">Đăng ký</a>
+          <div th:unless="${userName}">
+            <a href="/login" class="btn btn-login btn-sm px-4 me-2"
+              >Đăng nhập</a
+            >
+            <a href="/register" class="btn btn-danger btn-sm px-4 rounded-pill"
+              >Đăng ký</a
+            >
           </div>
-
         </div>
       </div>
     </nav>
 
-    <section class="hero-section text-center">
-        <div class="container">
-            <h1 class="display-5 fw-bold text-white">Mua vé xe khách trực tuyến</h1>
-        </div>
-    </section>
-
-    <div class="container">
-        <div class="search-box bg-white p-4 rounded-4 shadow-lg mx-auto">
-            <form th:action="@{/search}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4 text-start">
-                    <label class="form-label fw-bold small text-muted">ĐIỂM ĐI</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-geo-alt"></i></span>
-                        <input type="text" class="form-control border-0 bg-light" placeholder="Ví dụ: TP. Hồ Chí Minh" name="from">
-                    </div>
-                </div>
-                <div class="col-md-4 text-start">
-                    <label class="form-label fw-bold small text-muted">ĐIỂM ĐẾN</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-geo-fill"></i></span>
-                        <input type="text" class="form-control border-0 bg-light" placeholder="Ví dụ: Đà Lạt" name="to">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2 text-white">TÌM CHUYẾN XE</button>
-                </div>
-            </form>
-        </div>
+    <div class="hero-section">
+      <h1 class="text-white fw-bold">Mua vé xe khách trực tuyến</h1>
     </div>
 
-    <div class="container my-5">
-        <h3 class="text-success fw-bold mb-4">TUYẾN XE PHỔ BIẾN</h3>
-        <div class="row g-4" id="popular-routes">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <img src="https://images.unsplash.com/photo-1513530534585-c7b1394c6d51?q=80&w=2071" class="card-img-top rounded-top-3" alt="Dalat">
-                    <div class="card-body">
-                        <h6 class="fw-bold">TP.HCM - Đà Lạt</h6>
-                        <p class="text-danger fw-bold mb-0">300.000đ</p>
-                    </div>
-                </div>
-            </div>
-            </div>
+    <div class="search-box">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">ĐIỂM ĐI</label>
+          <input
+            list="departure-list"
+            id="departure"
+            class="form-control border-0 bg-light"
+            placeholder="TP. Hồ Chí Minh"
+          />
+          <datalist id="departure-list"></datalist>
+        </div>
+
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">ĐIỂM ĐẾN</label>
+          <input
+            list="arrival-list"
+            id="arrival"
+            class="form-control border-0 bg-light"
+            placeholder="Đà Lạt"
+          />
+          <datalist id="arrival-list"></datalist>
+        </div>
+        <div class="col-md-3">
+          <label class="small text-muted fw-bold">NGÀY ĐI</label>
+          <input
+            type="date"
+            id="travelDate"
+            class="form-control border-0 bg-light"
+          />
+        </div>
+        <div class="col-md-3">
+          <label>&nbsp;</label>
+          <button
+            onclick="handleSearch()"
+            class="btn btn-warning w-100 text-white fw-bold py-2"
+          >
+            TÌM CHUYẾN XE
+          </button>
+        </div>
+      </div>
     </div>
 
-    <script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
-</body>
+    <div class="container my-5" id="popular-section">
+      <h4 class="fw-bold mb-4" style="color: #006348">TUYẾN XE PHỔ BIẾN</h4>
+      <div class="row g-4" id="route-list"></div>
+    </div>
+    <div
+      class="container my-5"
+      id="search-result-section"
+      style="display: none"
+    >
+      <h4 class="fw-bold mb-4 text-primary">KẾT QUẢ TÌM KIẾM</h4>
+      <div class="row g-4" id="search-result-list"></div>
+    </div>
+    <div class="container my-5" id="search-result-section" style="display: none">
+  <button onclick="resetSearch()" class="btn btn-secondary mb-3">
+    ← Quay lại
+  </button>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      const API_BASE = "/api";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchAllTrips();
+
+        // Giữ nguyên các thông báo login/logout
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("loginSuccess") === "true") {
+          Swal.fire({
+            title: "Thành công!",
+            text: "Chào mừng bạn đến với BANVEXE!",
+            icon: "success",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          window.history.replaceState({}, document.title, "/");
+        }
+      });
+
+      
+      function goToBooking(tripId, routeId) {
+        if (!tripId) return;
+        window.location.href = `/booking?tripId=${tripId}&routeId=${routeId || ""}`;
+      }
+      function handleSearch() {
+        const from = document.getElementById("departure").value.trim();
+        const to = document.getElementById("arrival").value.trim();
+        const date = document.getElementById("travelDate").value;
+
+        if (!from || !to || !date) {
+          Swal.fire("Lỗi", "Nhập đủ thông tin!", "warning");
+          return;
+        }
+
+        fetchSearchTrips(from, to, date);
+      }
+
+      function resetSearch() {
+  document.getElementById("search-result-section").style.display = "none";
+  document.getElementById("popular-section").style.display = "block";
+}
+      async function fetchSearchTrips(from, to, date) {
+        const container = document.getElementById("search-result-list");
+        const section = document.getElementById("search-result-section");
+
+        document.getElementById("popular-section").style.display = "none";
+
+        section.style.display = "block";
+        container.innerHTML = `<p class="text-center">Đang tìm...</p>`;
+
+        try {
+          const url = `${API_BASE}/trips/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`;
+          console.log("CALL API:", url);
+
+          const res = await fetch(url);
+
+          console.log("STATUS:", res.status);
+
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("API ERROR:", text);
+            throw new Error("API lỗi");
+          }
+
+          const trips = await res.json();
+          console.log("DATA:", trips);
+
+          if (!trips.length) {
+            container.innerHTML = `
+        <div class="col-12 text-center text-muted py-5">
+          Không tìm thấy chuyến phù hợp
+        </div>`;
+            return;
+          }
+
+          container.innerHTML = trips.map(renderTripCard).join("");
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = `
+      <div class="col-12 text-center text-danger py-5">
+        Lỗi khi tìm kiếm
+      </div>`;
+        }
+      }
+      function renderTripCard(trip) {
+        const depLoc = trip.route?.departureLocation || "N/A";
+        const arrLoc = trip.route?.arrivalLocation || "N/A";
+        const price = trip.pricePerTicket
+          ? trip.pricePerTicket.toLocaleString("vi-VN")
+          : "0";
+
+        const dateObj = trip.departureTime
+          ? new Date(trip.departureTime)
+          : null;
+        const time = dateObj
+          ? dateObj.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "--:--";
+        const date = dateObj ? dateObj.toLocaleDateString("vi-VN") : "";
+
+        return `
+    <div class="col-md-4">
+      <div class="route-card" onclick="goToBooking(${trip.id}, ${trip.route?.id})">
+        <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400" class="w-100" style="height:160px; object-fit:cover;">
+        <div class="p-3">
+          <h6 class="fw-bold">${depLoc} → ${arrLoc}</h6>
+          <div class="d-flex justify-content-between">
+            <span class="small text-muted">${time} - ${date}</span>
+            <span class="text-danger fw-bold">${price}đ</span>
+          </div>
+          <div class="small text-secondary mt-1">
+            Xe: ${trip.bus?.busNumber || "N/A"} | Còn: ${trip.availableSeats || 0}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+      }
+      // Thay thế hàm fetchPopularRoutes cũ bằng bản này để an toàn hơn
+      async function fetchAllTrips() {
+        const container = document.getElementById("route-list");
+        if (!container) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/trips`);
+          if (!response.ok) throw new Error("Lỗi API");
+
+          const trips = await response.json();
+
+          if (!trips || trips.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-bus-front text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">Hiện tại chưa có chuyến xe nào được mở bán.</p>
+                </div>`;
+            return;
+          }
+
+          container.innerHTML = trips
+            .map((trip) => {
+              const depLoc = trip.route?.departureLocation || "Chưa xác định";
+              const arrLoc = trip.route?.arrivalLocation || "Chưa xác định";
+              const price = trip.pricePerTicket
+                ? trip.pricePerTicket.toLocaleString("vi-VN")
+                : "0";
+              const dateObj = trip.departureTime
+                ? new Date(trip.departureTime)
+                : null;
+              const time = dateObj
+                ? dateObj.toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "--:--";
+              const date = dateObj ? dateObj.toLocaleDateString("vi-VN") : "";
+
+              return `
+                <div class="col-md-4 mb-4">
+                    <div class="route-card" onclick="goToBooking(${trip.id}, ${trip.route?.id})">                        
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400" class="w-100" style="height:160px; object-fit:cover;">
+                            <span class="position-absolute top-0 end-0 m-2 badge bg-danger">Ưu đãi</span>
+                        </div>
+                        <div class="p-3">
+                            <h6 class="fw-bold mb-2">${depLoc} <i class="bi bi-arrow-right"></i> ${arrLoc}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted"><i class="bi bi-clock me-1"></i>${time} - ${date}</span>
+                                <span class="fw-bold text-danger">${price}đ</span>
+                            </div>
+                            <div class="small text-secondary">
+                                <i class="bi bi-bus-front-fill me-1"></i> Xe: ${trip.bus?.busNumber || "N/A"} 
+                                <span class="ms-2"><i class="bi bi-person-check me-1"></i>Còn trống: ${trip.availableSeats || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            })
+            .join("");
+        } catch (error) {
+          container.innerHTML = `<div class="col-12 text-center text-danger py-5">Lỗi kết nối dữ liệu chuyến xe.</div>`;
+        }
+      }
+
+      async function loadLocations() {
+        try {
+          const res = await fetch(`${API_BASE}/locations`);
+          const locations = await res.json();
+
+          const depList = document.getElementById("departure-list");
+          const arrList = document.getElementById("arrival-list");
+
+          const options = locations
+            .map((loc) => `<option value="${loc}">`)
+            .join("");
+
+          depList.innerHTML = options;
+          arrList.innerHTML = options;
+        } catch (e) {
+          console.error("Lỗi load địa điểm");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadLocations();
+      });
+    </script>
+  </body>
 </html>

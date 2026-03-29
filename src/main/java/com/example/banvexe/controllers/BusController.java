@@ -1,6 +1,9 @@
 package com.example.banvexe.controllers;
 import com.example.banvexe.models.entities.Bus;
 import com.example.banvexe.services.BusService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -19,13 +22,13 @@ public class BusController {
     public Bus getById(@PathVariable Long id) { return busService.getById(id); }
 
     @PostMapping
-    public Bus create(@RequestBody Bus bus) { return busService.save(bus); }
+    public Bus create(@Valid @RequestBody Bus bus) { return busService.save(bus); }
 
     @PutMapping("/{id}")
-    public Bus update(@PathVariable Long id, @RequestBody Bus bus) { 
+    public Bus update( @Valid @PathVariable Long id, @Valid @RequestBody Bus bus) { 
         return busService.update(id, bus); 
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) { busService.delete(id); }
+    public void delete(@Valid @PathVariable Long id) { busService.delete(id); }
 }

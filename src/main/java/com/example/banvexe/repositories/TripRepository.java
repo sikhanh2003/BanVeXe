@@ -2,6 +2,7 @@ package com.example.banvexe.repositories;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,13 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     Page<Trip> findByRouteId(Long routeId, Pageable pageable);
 
     // Tìm chuyến xe theo ngày (Có phân trang cho trang chủ nếu cần)
+    List<Trip> findByRouteDepartureLocationAndRouteArrivalLocationAndDepartureTimeBetween(
+            String departure,
+            String arrival,
+            LocalDateTime start,
+            LocalDateTime end);
+
+    // Tìm chuyến xe theo ngày (Dùng cho trang chủ)
     @Query("SELECT t FROM Trip t WHERE CAST(t.departureTime AS LocalDate) = :date")
     Page<Trip> findByDate(@Param("date") LocalDate date, Pageable pageable);
 
@@ -26,4 +34,12 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     // Hàm bổ trợ cho AdminService tính tỷ lệ lấp đầy
     @Query("SELECT SUM(b.capacity) FROM Trip t JOIN t.bus b")
     Integer getTotalSystemCapacity();
+}
+
+    @Query("SELECT r.id as id, r.departureLocation as departureLocation, " +
+            "r.arrivalLocation as arrivalLocation, r.distanceKm as distanceKm, " +
+            "MIN(t.pricePerTicket) as minPrice " +
+            "FROM Route r LEFT JOIN Trip t ON r.id = t.route.id " +
+            "GROUP BY r.id")
+    List<Object[]> findRoutesWithMinPrice();
 }

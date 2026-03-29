@@ -1,6 +1,7 @@
 package com.example.banvexe.services;
 
 import com.example.banvexe.models.dto.AdminDashboardDTO;
+import com.example.banvexe.models.entities.Ticket;
 import com.example.banvexe.models.entities.Trip;
 import com.example.banvexe.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +53,14 @@ public class AdminService {
         // Lấy tổng số chỗ của tất cả chuyến xe từ DB
         Integer totalCapacity = tripRepository.getTotalSystemCapacity();
 
-        if (totalCapacity == null || totalCapacity == 0) return 0.0;
+        if (totalCapacity == null || totalCapacity == 0)
+            return 0.0;
 
         double rate = (double) soldTickets / totalCapacity * 100;
         return Math.round(rate * 100.0) / 100.0; // Trả về dạng 85.55
+    }
+
+    public List<Ticket> getAllTickets() {
+        return ticketRepository.findAllWithDetails();
     }
 }
