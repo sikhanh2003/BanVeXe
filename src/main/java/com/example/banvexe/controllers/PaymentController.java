@@ -73,6 +73,8 @@ public class PaymentController {
                 ticket.setTotalAmount(price * seatCount);
 
                 ticketRepository.save(ticket);
+                trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
+                tripRepository.save(trip);
 
                 return ResponseEntity.ok(Map.of(
                         "message", "Đặt vé thành công",
@@ -145,6 +147,8 @@ public class PaymentController {
             ticket.setTotalAmount(price * seatCount);
 
             ticketRepository.save(ticket);
+            trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
+            tripRepository.save(trip);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Đặt vé thành công",
