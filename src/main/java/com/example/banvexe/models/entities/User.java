@@ -51,6 +51,10 @@ public class User {
         CUSTOMER, ADMIN
     }
 
+    public void setRole(String role) {
+        this.role = Role.valueOf(role.toUpperCase());
+    }
+
     public User() {}
 
         public Long getId() {
