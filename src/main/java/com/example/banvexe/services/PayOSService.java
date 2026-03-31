@@ -1,6 +1,7 @@
 package com.example.banvexe.services;
 
 import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.util.*;
@@ -11,6 +12,8 @@ public class PayOSService {
     private final String clientId = "846e0e16-964f-4ebd-8538-ffc3007c052f";
     private final String apiKey = "206daf4b-9bdb-4976-af92-72f0e46515e1";
     private final String checksumKey = "849676898fff1f52d47315c251f421860b39dbcb4a89c02c0f4dbb6f850a2bf8";
+    @Value("${app.base-url:http://localhost:8080}")
+    private String appBaseUrl;
 
     public String createPaymentLink(double amount, String description) {
         String url = "https://api-merchant.payos.vn/v2/payment-requests";
@@ -21,8 +24,8 @@ public class PayOSService {
         body.put("orderCode", System.currentTimeMillis() / 1000);
         body.put("amount", amount);
         body.put("description", description);
-        body.put("returnUrl", "http://localhost:8080/payment/success");
-        body.put("cancelUrl", "http://localhost:8080/payment/cancel");
+        body.put("returnUrl", appBaseUrl + "/payment/success");
+        body.put("cancelUrl", appBaseUrl + "/payment/cancel");
 
         // Header chứa mã xác thực
         HttpHeaders headers = new HttpHeaders();

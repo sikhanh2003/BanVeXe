@@ -257,6 +257,7 @@
         const response = await fetch("/api/payment/pay-later", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify(payload),
         });
 
@@ -278,18 +279,24 @@
         const response = await fetch("/api/payment/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({
-            amount: data.totalAmount,
-            seats: data.seats,
+            tripId: data.tripId,
+            seats: Array.isArray(data.seats) ? data.seats.join(",") : data.seats,
             customerName: data.customerName,
+            paymentMethod: "PAYOS",
           }),
         });
 
         const result = await response.json();
+        if (response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
         if (result.checkoutUrl) {
           window.location.href = result.checkoutUrl;
         } else {
-          throw new Error("Lỗi tạo link thanh toán.");
+          throw new Error(result.error || "Lỗi tạo link thanh toán.");
         }
       }
     </script>

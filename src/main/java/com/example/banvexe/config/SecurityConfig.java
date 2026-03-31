@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
@@ -53,12 +52,16 @@ public class SecurityConfig {
                 .requestMatchers(
                     mvc.pattern("/admin/**"),     // Cho phép vào trang giao diện admin
                     mvc.pattern("/api/admin/**"), // Cho phép các API admin
-                    mvc.pattern("/api/trips/**"), // Cho phép API lấy dữ liệu chuyến xe
+                    mvc.pattern("/api/trips"),
+                    mvc.pattern("/api/trips/search"),
+                    mvc.pattern("/api/trips/*"), // API đọc chi tiết chuyến xe
                     mvc.pattern("/api/routes/**"),
-                    mvc.pattern("/api/buses/**"),
-                    mvc.pattern("/booking")
+                    mvc.pattern("/api/buses/**")
                 ).permitAll() 
                 
+                .requestMatchers(mvc.pattern("/booking"), mvc.pattern("/booking/**")).authenticated()
+                .requestMatchers(mvc.pattern("/api/trips/*/seats/**")).authenticated()
+
                 // 4. Các trang cần login thực sự
                 .requestMatchers(mvc.pattern("/payment/**"), mvc.pattern("/myticket/**")).authenticated()
                 

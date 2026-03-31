@@ -42,10 +42,16 @@
         font-size: 12px;
       }
       .seat.booked {
-        background: #e0e0e0;
-        color: #9e9e9e;
+        background: #ffe5e5;
+        color: #d32f2f;
         cursor: not-allowed;
-        border: none;
+        border: 1px solid #ef9a9a;
+      }
+      .seat.held {
+        background: #fff8e1;
+        color: #f57c00;
+        cursor: not-allowed;
+        border: 1px solid #ffcc80;
       }
       .seat.selecting {
         background: #fff3f0;
@@ -217,26 +223,44 @@
                 Thanh toán
               </button>
             </div>
+            <div id="hold-countdown" class="small text-warning mt-2"></div>
           </div>
         </div>
       </div>
     </div>
 
     <script>
-      const API_BASE = "http://localhost:8080/api";
+      const API_BASE = "/api";
       const urlParams = new URLSearchParams(window.location.search);
       const routeId = urlParams.get("routeId");
       const tripId =
         urlParams.get("tripId") || sessionStorage.getItem("tripId");
 
       let selectedSeats = [];
+      let unavailableSeats = new Set();
+      let bookedSeats = new Set();
+      let heldSeats = new Set();
+      let holdUntilBySeat = {};
       let pricePerSeat = 0; // ✅ FIX: dùng let
+      let seatPollTimer = null;
+      let countdownTimer = null;
 
       document.addEventListener("DOMContentLoaded", () => {
         loadRouteInfo();
         loadTripInfo(); // 🔥 load giá vé
-        renderSeats();
+        loadSeatAvailability();
         loadUserInfo();
+        seatPollTimer = setInterval(loadSeatAvailability, 15000);
+        countdownTimer = setInterval(updateHoldCountdown, 1000);
+      });
+
+      window.addEventListener("beforeunload", () => {
+        if (seatPollTimer) {
+          clearInterval(seatPollTimer);
+        }
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+        }
       });
 
       // =========================
@@ -313,51 +337,137 @@
         const lower = document.getElementById("lower-deck");
         const upper = document.getElementById("upper-deck");
 
-        // Giả lập danh sách ghế đã có người đặt từ database
-        const booked = ["A01", "A02", "B01", "B02"];
-
         let lowerHtml = "";
         let upperHtml = "";
 
         for (let i = 1; i <= 17; i++) {
           const code = i < 10 ? `0${i}` : i;
-          lowerHtml += createSeat("A" + code, booked);
-          upperHtml += createSeat("B" + code, booked);
+          lowerHtml += createSeat("A" + code);
+          upperHtml += createSeat("B" + code);
         }
 
         lower.innerHTML = lowerHtml;
         upper.innerHTML = upperHtml;
       }
 
-      function createSeat(id, booked) {
-        const isBooked = booked.includes(id);
+      function createSeat(id) {
+        const isBooked = bookedSeats.has(id) && !selectedSeats.includes(id);
+        const isHeld = heldSeats.has(id) && !selectedSeats.includes(id);
+        const isBlocked = isBooked || isHeld;
+        let className = "";
+        if (isBooked) className = "booked";
+        if (isHeld) className = "held";
 
         return `
-      <div class="seat ${isBooked ? "booked" : ""}" 
+      <div class="seat ${className}" 
         id="seat-${id}" 
-        onclick="${isBooked ? "" : `selectSeat('${id}')`}">
+        onclick="${isBlocked ? "" : `selectSeat('${id}')`}">
         ${id}
       </div>`;
+      }
+
+      async function loadSeatAvailability() {
+        if (!tripId) return;
+        try {
+          const res = await fetch(`${API_BASE}/trips/${tripId}/seats/unavailable`, {
+            credentials: "same-origin",
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          bookedSeats = new Set(data.bookedSeats || []);
+          heldSeats = new Set(data.heldSeats || []);
+          unavailableSeats = new Set(data.unavailableSeats || []);
+          renderSeats();
+          updateSummary();
+        } catch (e) {
+          console.error("Không tải được trạng thái ghế:", e);
+        }
       }
 
       // =========================
       // CHỌN GHẾ
       // =========================
-      function selectSeat(id) {
+      async function selectSeat(id) {
         const el = document.getElementById(`seat-${id}`);
 
         if (selectedSeats.includes(id)) {
+          await releaseSeatHold(id);
           selectedSeats = selectedSeats.filter((s) => s !== id);
+          delete holdUntilBySeat[id];
           el.classList.remove("selecting");
         } else {
           if (selectedSeats.length >= 5) {
             return alert("Chỉ được chọn tối đa 5 ghế!");
           }
+          const holdResult = await holdSeat(id);
+          if (!holdResult.success) {
+            alert(holdResult.message || "Ghế đang được người khác giữ");
+            await loadSeatAvailability();
+            return;
+          }
           selectedSeats.push(id);
+          if (holdResult.holdUntil) {
+            holdUntilBySeat[id] = holdResult.holdUntil;
+          }
           el.classList.add("selecting");
         }
 
         updateSummary();
+        updateHoldCountdown();
+      }
+
+      async function holdSeat(seatNumber) {
+        const res = await fetch(`${API_BASE}/trips/${tripId}/seats/hold`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ seatNumber }),
+        });
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return { success: false, message: "Bạn cần đăng nhập" };
+        }
+        const data = await res.json();
+        return {
+          success: !!data.success,
+          message: data.message,
+          holdUntil: data.holdUntil,
+        };
+      }
+
+      async function releaseSeatHold(seatNumber) {
+        try {
+          await fetch(`${API_BASE}/trips/${tripId}/seats/hold?seatNumber=${encodeURIComponent(seatNumber)}`, {
+            method: "DELETE",
+            credentials: "same-origin",
+          });
+        } catch (e) {
+          console.warn("Không thể nhả hold ghế:", e);
+        }
+      }
+
+      function updateHoldCountdown() {
+        const holder = document.getElementById("hold-countdown");
+        if (!holder) return;
+        if (!selectedSeats.length) {
+          holder.innerText = "";
+          return;
+        }
+
+        const now = Date.now();
+        const rows = selectedSeats
+          .map((seat) => {
+            const holdUntil = holdUntilBySeat[seat];
+            if (!holdUntil) return null;
+            const diff = new Date(holdUntil).getTime() - now;
+            if (diff <= 0) return `Ghế ${seat}: hết giữ`;
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            return `Ghế ${seat}: còn ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+          })
+          .filter(Boolean);
+
+        holder.innerText = rows.length ? rows.join(" | ") : "";
       }
 
       // =========================
@@ -394,7 +504,6 @@
         const name = document.getElementById("fullName").value.trim();
         const phone = document.getElementById("phone").value.trim();
         const email = document.getElementById("email").value.trim();
-        const userId = localStorage.getItem("userId");
         if (selectedSeats.length === 0) return alert("Vui lòng chọn ghế!");
 
         // Kiểm tra thông tin tự nhập
@@ -405,16 +514,29 @@
         if (!document.getElementById("terms").checked) {
           return alert("Bạn phải đồng ý với điều khoản!");
         }
-        if (!userId) {
+
+        // Xác thực bằng session thật từ server thay vì localStorage
+        let me;
+        try {
+          const meRes = await fetch("/api/auth/me", { credentials: "same-origin" });
+          if (!meRes.ok) {
+            alert("Vui lòng đăng nhập để đặt vé!");
+            window.location.href = "/login";
+            return;
+          }
+          me = await meRes.json();
+        } catch (e) {
+          console.error("Không thể kiểm tra trạng thái đăng nhập:", e);
           alert("Vui lòng đăng nhập để đặt vé!");
           window.location.href = "/login";
           return;
         }
+
         const routeName = document.getElementById("route-name").innerText;
 
         const bookingData = {
           tripId: tripId,
-          userId: userId,
+          userId: me.id,
           seats: selectedSeats,
           customerName: name,
           customerPhone: phone,
