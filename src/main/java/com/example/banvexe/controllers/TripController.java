@@ -2,14 +2,18 @@ package com.example.banvexe.controllers;
 
 import com.example.banvexe.models.entities.Trip;
 import com.example.banvexe.services.TripService;
+import com.example.banvexe.services.SeatReservationService;
 import com.example.banvexe.repositories.TripRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page; // Quan trọng: Import của Spring Data
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
+import java.util.Map;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -20,6 +24,8 @@ public class TripController {
     private TripService tripService;
     @Autowired
     private TripRepository tripRepository;
+    @Autowired
+    private SeatReservationService seatReservationService;
 
     // SỬA TẠI ĐÂY: Thêm phân trang cho API
     @GetMapping
@@ -69,5 +75,39 @@ public class TripController {
             @RequestParam String date) {
         List<Trip> results = tripService.searchTrips(from, to, date);
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/{id}/seats/unavailable")
+    public ResponseEntity<?> getUnavailableSeats(@PathVariable Long id) {
+        Map<String, Set<String>> state = seatReservationService.getSeatState(id);
+        return ResponseEntity.ok(Map.of(
+                "bookedSeats", state.get("bookedSeats"),
+                "heldSeats", state.get("heldSeats"),
+                "unavailableSeats", state.get("unavailableSeats"),
+                "holdMinutes", seatReservationService.getHoldMinutes()));
+    }
+
+    @PostMapping("/{id}/seats/hold")
+    public ResponseEntity<?> holdSeat(@PathVariable Long id, @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập"));
+        }
+        String seatNumber = body.get("seatNumber");
+        Map<String, Object> result = seatReservationService.holdSeat(id, seatNumber, authentication.getName());
+        if (Boolean.TRUE.equals(result.get("success"))) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
+    }
+
+    @DeleteMapping("/{id}/seats/hold")
+    public ResponseEntity<?> releaseSeat(@PathVariable Long id, @RequestParam String seatNumber,
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập"));
+        }
+        seatReservationService.releaseSeat(id, seatNumber, authentication.getName());
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

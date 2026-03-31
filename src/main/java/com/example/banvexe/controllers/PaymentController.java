@@ -3,6 +3,7 @@ package com.example.banvexe.controllers;
 import com.example.banvexe.models.entities.Ticket;
 import com.example.banvexe.models.entities.Trip;
 import com.example.banvexe.services.PayOSService;
+import com.example.banvexe.services.SeatReservationService;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +32,8 @@ public class PaymentController {
     private TripRepository tripRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private SeatReservationService seatReservationService;
 
     @PostMapping("/api/payment/create")
     @ResponseBody
@@ -50,6 +53,11 @@ public class PaymentController {
             User user = userRepository.findByUsername(username).orElseThrow();
 
             Trip trip = tripRepository.findById(tripId).orElseThrow();
+            List<String> seatList = Arrays.asList(seats.split(","));
+            Optional<String> seatValidationError = seatReservationService.validateForCheckout(tripId, seatList, username);
+            if (seatValidationError.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", seatValidationError.get()));
+            }
 
             // 🔥 FIX CHUẨN
             double price = trip.getPricePerTicket();
@@ -75,6 +83,7 @@ public class PaymentController {
                 ticketRepository.save(ticket);
                 trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
                 tripRepository.save(trip);
+                seatReservationService.releaseMyHolds(tripId, seatList, username);
 
                 return ResponseEntity.ok(Map.of(
                         "message", "Đặt vé thành công",
@@ -100,6 +109,10 @@ public class PaymentController {
             Authentication auth) {
 
         try {
+            if (auth == null || !auth.isAuthenticated()) {
+                return ResponseEntity.status(401).body("Bạn cần đăng nhập");
+            }
+
             String username = auth.getName();
 
             User user = userRepository.findByUsername(username).orElseThrow();
@@ -111,21 +124,9 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body("Chưa chọn ghế");
             }
 
-            // 🔥 check trùng ghế
-            List<Ticket> tickets = ticketRepository.findByTrip(trip);
-            Set<String> bookedSeats = new HashSet<>();
-
-            for (Ticket t : tickets) {
-                if (t.getSeats() != null) {
-                    bookedSeats.addAll(Arrays.asList(t.getSeats().split(",")));
-                }
-            }
-
-            for (String seat : seats) {
-                if (bookedSeats.contains(seat)) {
-                    return ResponseEntity.badRequest()
-                            .body("Ghế " + seat + " đã được đặt!");
-                }
+            Optional<String> seatValidationError = seatReservationService.validateForCheckout(req.getTripId(), seats, username);
+            if (seatValidationError.isPresent()) {
+                return ResponseEntity.badRequest().body(seatValidationError.get());
             }
 
             // 🔥 FIX CHUẨN
@@ -149,6 +150,7 @@ public class PaymentController {
             ticketRepository.save(ticket);
             trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
             tripRepository.save(trip);
+            seatReservationService.releaseMyHolds(req.getTripId(), seats, username);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Đặt vé thành công",
